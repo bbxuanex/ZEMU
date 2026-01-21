@@ -14,7 +14,7 @@
  ***************************************************************************************/
 
 #include <isa.h>
-
+#include <memory/vaddr.h>
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
@@ -22,10 +22,18 @@
 enum
 {
   TK_NOTYPE = 256,
-  TK_EQ,
-  TK_DEC,
-  TK_HEX,
-  TK_REG,
+  TK_EQ,    // ==
+  TK_NEQ,   // !=
+  TK_AND,   // &&
+  TK_OR,    // ||
+  TK_LE,    // <=
+  TK_GE,    // >=
+  TK_NOT,   // !
+  TK_DEC,   // 十进制数
+  TK_HEX,   // 十六进制数
+  TK_REG,   // 寄存器
+  TK_DEREF, // 指针解引用 *
+  TK_NEG,   // 负号 -
 
   /* TODO: Add more token types */
 
@@ -44,6 +52,14 @@ static struct rule
     {" +", TK_NOTYPE},          // spaces
     {"\\+", '+'},               // plus
     {"==", TK_EQ},              // equal
+    {"!=", TK_NEQ},             // not equal
+    {"&&", TK_AND},             // logical and
+    {"\\|\\|", TK_OR},          // logical or
+    {"<=", TK_LE},              //
+    {">=", TK_GE},              //
+    {"<", '<'},                 //
+    {">", '>'},                 //
+    {"!", TK_NOT},              // logical not
     {"-", '-'},                 // differ
     {"\\*", '*'},               // multiply
     {"/", '/'},                 // chuhao
@@ -139,6 +155,37 @@ static bool make_token(char *e)
       return false;
     }
   }
+  // 识别负号和指针解引用
+  for (i = 0; i < nr_token; i++)
+  {
+    if (tokens[i].type == '-')
+    {
+      // 判断是负号还是减法
+      // 负号的条件：前面不是数字、不是右括号、不是寄存器
+      if (i == 0 ||
+          (tokens[i - 1].type != TK_DEC &&
+           tokens[i - 1].type != TK_HEX &&
+           tokens[i - 1].type != TK_REG &&
+           tokens[i - 1].type != ')'))
+      {
+        tokens[i].type = TK_NEG; // 标记为负号
+      }
+    }
+    else if (tokens[i].type == '*')
+    {
+      // 判断是解引用还是乘法
+      // 解引用的条件：前面不是数字、不是右括号、不是寄存器
+      if (i == 0 ||
+          (tokens[i - 1].type != TK_DEC &&
+           tokens[i - 1].type != TK_HEX &&
+           tokens[i - 1].type != TK_REG &&
+           tokens[i - 1].type != ')'))
+      {
+        tokens[i].type = TK_DEREF; // 标记为指针解引用
+      }
+    }
+  }
+
   return true;
 }
 
@@ -156,9 +203,9 @@ static bool check_parentheses(int p, int q)
       n++;
     if (tokens[i].type == ')')
       n--;
-    //Logic: 'cuz i ends at q while not reaching q, 
-    //so if ()couple exist only on two ends, the value of n shoud be 1!
-    //it means that some other ')'appears before the ')'paired with '(' when n==0
+    // Logic: 'cuz i ends at q while not reaching q,
+    // so if ()couple exist only on two ends, the value of n shoud be 1!
+    // it means that some other ')'appears before the ')'paired with '(' when n==0
     if (n == 0)
       return false;
   }
@@ -166,7 +213,7 @@ static bool check_parentheses(int p, int q)
   if (tokens[q].type == ')')
     n--;
 
-  return n == 0;// true means parentheses could be abandoned safely,,false? the opposite!
+  return n == 0; // true means parentheses could be abandoned safely,,false? the opposite!
 }
 
 int find_main_operator(int p, int q)
@@ -174,6 +221,7 @@ int find_main_operator(int p, int q)
   int op = -1;
   int paren = 0;
 
+  // 第一轮：查找逻辑或 (||) - 最低优先级
   for (int i = p; i <= q; i++)
   {
     if (tokens[i].type == '(')
@@ -183,8 +231,7 @@ int find_main_operator(int p, int q)
 
     if (paren == 0)
     {
-
-      if (tokens[i].type == '+' || tokens[i].type == '-')
+      if (tokens[i].type == TK_OR)
       {
         op = i;
       }
@@ -193,6 +240,8 @@ int find_main_operator(int p, int q)
 
   if (op != -1)
     return op;
+
+  // 第二轮：查找逻辑与 (&&)
   paren = 0;
   for (int i = p; i <= q; i++)
   {
@@ -203,7 +252,72 @@ int find_main_operator(int p, int q)
 
     if (paren == 0)
     {
-      if (tokens[i].type == '*' || tokens[i].type == '/')
+      if (tokens[i].type == TK_AND)
+      {
+        op = i;
+      }
+    }
+  }
+
+  if (op != -1)
+    return op;
+
+  // 第三轮：查找比较运算符 (==, !=, <, >, <=, >=)
+  paren = 0;
+  for (int i = p; i <= q; i++)
+  {
+    if (tokens[i].type == '(')
+      paren++;
+    else if (tokens[i].type == ')')
+      paren--;
+
+    if (paren == 0)
+    {
+      if (tokens[i].type == TK_EQ || tokens[i].type == TK_NEQ ||
+          tokens[i].type == '<' || tokens[i].type == '>' ||
+          tokens[i].type == TK_LE || tokens[i].type == TK_GE)
+      {
+        op = i;
+      }
+    }
+  }
+
+  if (op != -1)
+    return op;
+
+  // 第四轮：查找加减运算符 (+, -)
+  paren = 0;
+  for (int i = p; i <= q; i++)
+  {
+    if (tokens[i].type == '(')
+      paren++;
+    else if (tokens[i].type == ')')
+      paren--;
+
+    if (paren == 0)
+    {
+      if (tokens[i].type == '+' || tokens[i].type == '-')
+      {
+        op = i;
+      }
+    }
+  }
+
+  if (op != -1)
+    return op;
+
+  // 第五轮：查找乘除取模运算符 (*, /, %)
+  paren = 0;
+  for (int i = p; i <= q; i++)
+  {
+    if (tokens[i].type == '(')
+      paren++;
+    else if (tokens[i].type == ')')
+      paren--;
+
+    if (paren == 0)
+    {
+      if (tokens[i].type == '*' || tokens[i].type == '/' || tokens[i].type == '%')
       {
         op = i;
       }
@@ -219,6 +333,24 @@ static word_t eval(int p, int q)
   {
     // Bad expression
     return 0;
+  }
+
+  // 处理单目运算符（逻辑非 !、负号 -、指针解引用 *）
+  if (tokens[p].type == '!')
+  {
+    word_t val = eval(p + 1, q);
+    return !val; // 逻辑非：非零返回0，零返回1
+  }
+  else if (tokens[p].type == TK_NEG)
+  {
+    word_t val = eval(p + 1, q);
+    return -(sword_t)val; // 负号：取相反数
+  }
+  else if (tokens[p].type == TK_DEREF)
+  {
+    word_t addr = eval(p + 1, q);
+    // 从内存地址读取值
+    return vaddr_read(addr, 4); // 读取4字节
   }
   else if (p == q)
   {
@@ -277,9 +409,30 @@ static word_t eval(int p, int q)
         printf("Error: Division by zero\n");
         return 0;
       }
-      return (word_t)((int)val1 / (int)val2);
+      return (word_t)((sword_t)val1 / (sword_t)val2);
+    case '%':
+      if (val2 == 0)
+      {
+        printf("Error: Modulo by zero\n");
+        return 0;
+      }
+      return (word_t)((sword_t)val1 % (sword_t)val2);
     case TK_EQ:
       return val1 == val2;
+    case TK_NEQ:
+      return val1 != val2;
+    case '<':
+      return (sword_t)val1 < (sword_t)val2;
+    case '>':
+      return (sword_t)val1 > (sword_t)val2;
+    case TK_LE:
+      return (sword_t)val1 <= (sword_t)val2;
+    case TK_GE:
+      return (sword_t)val1 >= (sword_t)val2;
+    case TK_AND:
+      return val1 && val2;
+    case TK_OR:
+      return val1 || val2;
     default:
       assert(0);
     }

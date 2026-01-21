@@ -331,32 +331,11 @@ static word_t eval(int p, int q)
 {
   if (p > q)
   {
-    // Bad expression
     return 0;
-  }
-
-  // 处理单目运算符（逻辑非 !、负号 -、指针解引用 *）
-  if (tokens[p].type == TK_NOT)
-  {
-    word_t val = eval(p + 1, q);
-    return !val; // 逻辑非：非零返回0，零返回1
-  }
-  else if (tokens[p].type == TK_NEG)
-  {
-    word_t val = eval(p + 1, q);
-    return -(sword_t)val; // 负号：取相反数
-  }
-  else if (tokens[p].type == TK_DEREF)
-  {
-    word_t addr = eval(p + 1, q);
-    // 从内存地址读取值
-    return vaddr_read(addr, 4); // 读取4字节
   }
   else if (p == q)
   {
-    // Base case: single number
-    // Convert string to unsigned long. 0 means auto-detect base (10 or 16)
-
+    // Base case: 单个数字或寄存器
     if (tokens[p].type == TK_REG)
     {
       bool success;
@@ -372,70 +351,88 @@ static word_t eval(int p, int q)
   }
   else if (check_parentheses(p, q) == true)
   {
-    // The expression is surrounded by parentheses, remove them
     return eval(p + 1, q - 1);
   }
   else
   {
-    // General case: split by main operator
+    // 1. 尝试寻找主运算符（双目）
     int op = find_main_operator(p, q);
-    if (op == -1)
+
+    // 2. 如果找到了双目运算符，正常计算
+    if (op != -1)
     {
-      printf("[Error] Main operator not found in range [%d, %d]!\n", p, q);
-      printf("Current expression substring: ");
-      for (int k = p; k <= q; k++)
+      word_t val1 = eval(p, op - 1);
+      word_t val2 = eval(op + 1, q);
+
+      switch (tokens[op].type)
       {
-        printf("%s", tokens[k].str);
+      case '+':
+        return val1 + val2;
+      case '-':
+        return val1 - val2;
+      case '*':
+        return val1 * val2;
+      case '/':
+        if (val2 == 0)
+        {
+          printf("Error: Division by zero\n");
+          return 0;
+        }
+        return val1 / val2;
+      case '%':
+        if (val2 == 0)
+        {
+          printf("Error: Modulo by zero\n");
+          return 0;
+        }
+        return val1 % val2;
+      case TK_EQ:
+        return val1 == val2;
+      case TK_NEQ:
+        return val1 != val2;
+      case '<':
+        return val1 < val2;
+      case '>':
+        return val1 > val2;
+      case TK_LE:
+        return val1 <= val2;
+      case TK_GE:
+        return val1 >= val2;
+      case TK_AND:
+        return val1 && val2;
+      case TK_OR:
+        return val1 || val2;
+      default:
+        assert(0);
       }
-      printf("\n");
-      return 0;
     }
-    // Recursively evaluate both sides
-    word_t val1 = eval(p, op - 1);
-    word_t val2 = eval(op + 1, q);
-
-    // Perform calculation based on the operator type
-    switch (tokens[op].type)
+    // 3. 没找到双目运算符？那它肯定是一个单目运算表达式！
+    else
     {
-    case '+':
-      return val1 + val2;
-    case '-':
-      return val1 - val2;
-    case '*':
-      return val1 * val2;
-    case '/':
-      if (val2 == 0)
-      {
-        printf("Error: Division by zero\n");
-        return 0;
-      }
-      return val1 / val2;
-    case '%':
-      if (val2 == 0)
-      {
-        printf("Error: Modulo by zero\n");
-        return 0;
-      }
-      return val1 % val2;
-    case TK_EQ:
-      return val1 == val2;
-    case TK_NEQ:
-      return val1 != val2;
-    case '<':
-      return val1 < val2;
-    case '>':
-      return val1 > val2;
-    case TK_LE:
-      return val1 <= val2;
-    case TK_GE:
-      return val1 >= val2;
+      // 检查开头的 token 类型
+      int type = tokens[p].type;
 
-    case TK_AND:
-      return val1 && val2;
-    case TK_OR:
-      return val1 || val2;
-    default:
-      assert(0);
+      if (type == TK_NOT)
+      {
+        word_t val = eval(p + 1, q);
+        return !val;
+      }
+      else if (type == TK_NEG)
+      {
+        word_t val = eval(p + 1, q);
+        return -val;
+      }
+      else if (type == TK_DEREF)
+      {
+        word_t addr = eval(p + 1, q);
+        return vaddr_read(addr, 4);
+      }
+      else
+      {
+        // 真的找不到了，或者是语法错误
+        printf("[Error] Main operator not found in range [%d, %d]!\n", p, q);
+        return 0;
+      }
     }
   }
   return 0;

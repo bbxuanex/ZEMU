@@ -63,6 +63,7 @@ static struct rule
     {"-", '-'},                 // differ
     {"\\*", '*'},               // multiply
     {"/", '/'},                 // chuhao
+    {"%", '%'},                 // mod
     {"\\(", '('},               // left
     {"\\)", ')'},               // right
     {"0x[0-9a-fA-F]+", TK_HEX}, // Hexadecimal

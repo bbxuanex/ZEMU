@@ -336,7 +336,7 @@ static word_t eval(int p, int q)
   }
 
   // 处理单目运算符（逻辑非 !、负号 -、指针解引用 *）
-  if (tokens[p].type == '!')
+  if (tokens[p].type == TK_NOT)
   {
     word_t val = eval(p + 1, q);
     return !val; // 逻辑非：非零返回0，零返回1
@@ -409,26 +409,24 @@ static word_t eval(int p, int q)
         printf("Error: Division by zero\n");
         return 0;
       }
-      return (word_t)((sword_t)val1 / (sword_t)val2);
+      return val1 / val2; // 去掉 (sword_t)
     case '%':
       if (val2 == 0)
       {
         printf("Error: Modulo by zero\n");
         return 0;
       }
-      return (word_t)((sword_t)val1 % (sword_t)val2);
-    case TK_EQ:
-      return val1 == val2;
-    case TK_NEQ:
-      return val1 != val2;
+      return val1 % val2; // 去掉 (sword_t)
+
     case '<':
-      return (sword_t)val1 < (sword_t)val2;
+      return val1 < val2;
     case '>':
-      return (sword_t)val1 > (sword_t)val2;
+      return val1 > val2;
     case TK_LE:
-      return (sword_t)val1 <= (sword_t)val2;
+      return val1 <= val2;
     case TK_GE:
-      return (sword_t)val1 >= (sword_t)val2;
+      return val1 >= val2;
+
     case TK_AND:
       return val1 && val2;
     case TK_OR:

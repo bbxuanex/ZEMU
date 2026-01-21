@@ -263,7 +263,7 @@ int find_main_operator(int p, int q)
   if (op != -1)
     return op;
 
-  // 第三轮：查找比较运算符 (==, !=, <, >, <=, >=)
+  // 第三轮：查找相等/不等运算符 (==, !=) - 优先级较低 (7)
   paren = 0;
   for (int i = p; i <= q; i++)
   {
@@ -274,8 +274,28 @@ int find_main_operator(int p, int q)
 
     if (paren == 0)
     {
-      if (tokens[i].type == TK_EQ || tokens[i].type == TK_NEQ ||
-          tokens[i].type == '<' || tokens[i].type == '>' ||
+      if (tokens[i].type == TK_EQ || tokens[i].type == TK_NEQ)
+      {
+        op = i;
+      }
+    }
+  }
+
+  if (op != -1)
+    return op; // 如果找到了 == 或 !=，它就是主运算符
+
+  // 第四轮：查找关系运算符 (<, >, <=, >=) - 优先级稍高 (6)
+  paren = 0;
+  for (int i = p; i <= q; i++)
+  {
+    if (tokens[i].type == '(')
+      paren++;
+    else if (tokens[i].type == ')')
+      paren--;
+
+    if (paren == 0)
+    {
+      if (tokens[i].type == '<' || tokens[i].type == '>' ||
           tokens[i].type == TK_LE || tokens[i].type == TK_GE)
       {
         op = i;
@@ -284,9 +304,9 @@ int find_main_operator(int p, int q)
   }
 
   if (op != -1)
-    return op;
+    return op; // 如果没找到 ==，但找到了 < >，那它就是主运算符
 
-  // 第四轮：查找加减运算符 (+, -)
+  // 第五轮：查找加减运算符 (+, -)
   paren = 0;
   for (int i = p; i <= q; i++)
   {
@@ -307,7 +327,7 @@ int find_main_operator(int p, int q)
   if (op != -1)
     return op;
 
-  // 第五轮：查找乘除取模运算符 (*, /, %)
+  // 第六轮：查找乘除取模运算符 (*, /, %)
   paren = 0;
   for (int i = p; i <= q; i++)
   {

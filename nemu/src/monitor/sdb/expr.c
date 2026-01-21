@@ -379,26 +379,26 @@ static word_t eval(int p, int q)
           printf("Error: Division by zero\n");
           return 0;
         }
-        return val1 / val2;
+        return (sword_t)val1 / (sword_t)val2; // 👈 加上 (sword_t)
       case '%':
         if (val2 == 0)
         {
           printf("Error: Modulo by zero\n");
           return 0;
         }
-        return val1 % val2;
+        return (sword_t)val1 % (sword_t)val2; // 👈 加上 (sword_t)
       case TK_EQ:
         return val1 == val2;
       case TK_NEQ:
         return val1 != val2;
       case '<':
-        return val1 < val2;
+        return (sword_t)val1 < (sword_t)val2; // 👈 加上 (sword_t)
       case '>':
-        return val1 > val2;
+        return (sword_t)val1 > (sword_t)val2; // 👈 加上 (sword_t)
       case TK_LE:
-        return val1 <= val2;
+        return (sword_t)val1 <= (sword_t)val2; // 👈 加上 (sword_t)
       case TK_GE:
-        return val1 >= val2;
+        return (sword_t)val1 >= (sword_t)val2; // 👈 加上 (sword_t)
       case TK_AND:
         return val1 && val2;
       case TK_OR:

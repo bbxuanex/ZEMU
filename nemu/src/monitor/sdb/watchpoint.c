@@ -24,8 +24,7 @@ typedef struct watchpoint
   word_t old_val;
   struct watchpoint *next;
 
-  /* done for the first time at 2025.12.27 ——shuimushi*/
-  /* TODO: add more sentences if necessary */
+  /* done for the first time on 2025.12.27 ——shuimushi*/
 
 } WP;
 
@@ -197,4 +196,3 @@ void list_watchpoint()
   }
 }
   /* initial implement by [shuimushi] on 2025.12.27 */
-  /* TODO: Implement the functionality of watchpoint */

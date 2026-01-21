@@ -33,16 +33,13 @@ static char *code_format =
     "  return 0; "
     "}";
 
-// 辅助函数：生成 [0, n-1] 的随机数
 static uint32_t choose(uint32_t n)
 {
   return rand() % n;
 }
 
-// 递归生成随机表达式
 static void gen_rand_expr(int length)
 {
-  // 1. 长度限制
   if (strlen(buf) > 500)
   {
     char num_buf[32];
@@ -51,17 +48,12 @@ static void gen_rand_expr(int length)
     return;
   }
 
-  // 2. 随机选择生成类型
-  // 0: 数字
-  // 1: 括号 ( expr )
-  // 2: 单目运算 ( !expr, -expr )
-  // 3: 二元运算 ( expr OP expr )
   switch (choose(4))
   {
   case 0:
   { // 生成数字
     char num_buf[32];
-    // 20% 概率生成十六进制
+    // 减少十六进制生成的概率，防止因为无符号数溢出问题太复杂
     if (choose(5) == 0)
     {
       sprintf(num_buf, "0x%x", choose(1000) + 1);
@@ -79,19 +71,16 @@ static void gen_rand_expr(int length)
     strcat(buf, ")");
     break;
   case 2:
-  { // 生成单目运算 (! 或 -)
-    // 注意：不生成 * (解引用)，因为随机地址会导致 GCC 崩溃
+  { // 生成单目运算
     if (choose(2) == 0)
     {
-      strcat(buf, "-"); // 负号
+      strcat(buf, " -"); // 前面加个空格防止粘连
     }
     else
     {
-      strcat(buf, "!"); // 逻辑非
+      strcat(buf, " !");
     }
-    // 为了避免连续符号解析困难（如 --1），加个括号保险，或者直接接表达式
-    // 这里简单处理，直接递归，依靠空格插入来分隔
-    strcat(buf, "("); // 加括号比较稳妥，例如 -(1+2)
+    strcat(buf, "(");
     gen_rand_expr(length + 1);
     strcat(buf, ")");
     break;
@@ -100,48 +89,48 @@ static void gen_rand_expr(int length)
   { // 生成二元运算
     gen_rand_expr(length + 1);
 
-    // 你的 expr.c 支持的所有二元运算符
     char *op;
+    // 在运算符两边直接加上空格，确保不会粘连，也不用后续随机插空格了
     switch (choose(13))
     {
     case 0:
-      op = "+";
+      op = " + ";
       break;
     case 1:
-      op = "-";
+      op = " - ";
       break;
     case 2:
-      op = "*";
+      op = " * ";
       break;
     case 3:
-      op = "/";
+      op = " / ";
       break;
     case 4:
-      op = "%";
-      break; // 取模
+      op = " % ";
+      break;
     case 5:
-      op = "==";
-      break; // 等于
+      op = " == ";
+      break;
     case 6:
-      op = "!=";
-      break; // 不等于
+      op = " != ";
+      break;
     case 7:
-      op = "&&";
-      break; // 逻辑与
+      op = " && ";
+      break;
     case 8:
-      op = "||";
-      break; // 逻辑或
+      op = " || ";
+      break;
     case 9:
-      op = "<";
+      op = " < ";
       break;
     case 10:
-      op = ">";
+      op = " > ";
       break;
     case 11:
-      op = "<=";
+      op = " <= ";
       break;
     case 12:
-      op = ">=";
+      op = " >= ";
       break;
     }
 
@@ -152,29 +141,11 @@ static void gen_rand_expr(int length)
   }
 }
 
-// 随机插入空格
-static void insert_random_spaces()
-{
-  char temp[BUF_SIZE];
-  int j = 0;
-  for (int i = 0; buf[i] != '\0'; i++)
-  {
-    temp[j++] = buf[i];
-    if (choose(10) < 3)
-    { // 30% 概率插入空格
-      temp[j++] = ' ';
-    }
-  }
-  temp[j] = '\0';
-  if (j < BUF_SIZE - 1)
-    strcpy(buf, temp);
-}
-
 int main(int argc, char *argv[])
 {
   int seed = time(0);
   srand(seed);
-  int loop = 100; // 默认生成数量
+  int loop = 100;
   if (argc > 1)
   {
     sscanf(argv[1], "%d", &loop);
@@ -193,9 +164,8 @@ int main(int argc, char *argv[])
       continue;
     }
 
-    insert_random_spaces();
+    // 移除了 insert_random_spaces() 调用，防止破坏双字符运算符
 
-    // 构造 C 代码
     sprintf(code_buf, code_format, buf);
 
     FILE *fp = fopen("/tmp/.code.c", "w");
@@ -203,7 +173,6 @@ int main(int argc, char *argv[])
     fputs(code_buf, fp);
     fclose(fp);
 
-    // 编译 (-w 关闭警告)
     int ret = system("gcc /tmp/.code.c -o /tmp/.expr -w");
     if (ret != 0)
     {

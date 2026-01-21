@@ -388,17 +388,17 @@ static word_t eval(int p, int q)
         }
         return (sword_t)val1 % (sword_t)val2; // 👈 加上 (sword_t)
       case TK_EQ:
-        return val1 == val2;
+        return (sword_t)val1 == (sword_t)val2;
       case TK_NEQ:
-        return val1 != val2;
+        return (sword_t)val1 != (sword_t)val2;
       case '<':
-        return (sword_t)val1 < (sword_t)val2; // 👈 加上 (sword_t)
+        return (sword_t)val1 < (sword_t)val2;
       case '>':
-        return (sword_t)val1 > (sword_t)val2; // 👈 加上 (sword_t)
+        return (sword_t)val1 > (sword_t)val2;
       case TK_LE:
-        return (sword_t)val1 <= (sword_t)val2; // 👈 加上 (sword_t)
+        return (sword_t)val1 <= (sword_t)val2;
       case TK_GE:
-        return (sword_t)val1 >= (sword_t)val2; // 👈 加上 (sword_t)
+        return (sword_t)val1 >= (sword_t)val2;
       case TK_AND:
         return val1 && val2;
       case TK_OR:
@@ -418,11 +418,12 @@ static word_t eval(int p, int q)
         word_t val = eval(p + 1, q);
         return !val;
       }
-      else if (type == TK_NEG)
+      else if (tokens[p].type == TK_NEG)
       {
         word_t val = eval(p + 1, q);
-        return -val;
+        return -(sword_t)val; // 👈 加上 (sword_t)
       }
+
       else if (type == TK_DEREF)
       {
         word_t addr = eval(p + 1, q);
@@ -435,8 +436,9 @@ static word_t eval(int p, int q)
         return 0;
       }
     }
+
+    return 0;
   }
-  return 0;
 }
 
 word_t expr(char *e, bool *success)

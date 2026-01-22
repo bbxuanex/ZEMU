@@ -135,52 +135,60 @@ static void gen_rand_expr(int length)
 
 int main(int argc, char *argv[])
 {
-  int loop = 10000; // 默认生成 10000 条
+  // 1. 初始化随机种子
+  srand(time(0));
+
+  int loop = 10000;
   if (argc > 1)
   {
     sscanf(argv[1], "%d", &loop);
   }
 
-  int i;
-  FILE *fp = fopen("/tmp/.code.c", "w");
-  assert(fp != NULL);
-
-  fprintf(fp, "#include <stdio.h>\n");
-  fprintf(fp, "int main() {\n");
-  fprintf(fp, "  unsigned long result;\n");
-
-  for (i = 0; i < loop; i++)
+  int i = 0;
+  while (i < loop)
   {
+    // 2. 生成随机表达式
     buf[0] = '\0';
     gen_rand_expr(0);
 
-    // 过滤掉太短的表达式
+    // 过滤太短的
     if (strlen(buf) < 3)
     {
-      i--;
       continue;
     }
 
-    fprintf(fp, "  result = (unsigned long)(%s); ", buf);
-    fprintf(fp, "printf(\"%%lu %%s\\n\", result, \"%s\");\n", buf);
-  }
+    // 3. 为【这一条】表达式单独生成一个 C 程序
+    FILE *fp = fopen("/tmp/.code.c", "w");
+    assert(fp != NULL);
 
-  fprintf(fp, "  return 0;\n");
-  fprintf(fp, "}\n");
-  fclose(fp);
+    fprintf(fp, "#include <stdio.h>\n");
+    fprintf(fp, "#include <stdint.h>\n"); // 引入 uint32_t
+    fprintf(fp, "int main() {\n");
 
-  int ret = system("gcc -O2 /tmp/.code.c -o /tmp/.expr -w");
-  if (ret != 0)
-  {
-    fprintf(stderr, "Error: Compilation failed!\n");
-    return 1;
-  }
+    // 强制使用 uint32_t 计算，确保和 NEMU 行为一致
+    fprintf(fp, "  uint32_t result = %s;\n", buf);
+    fprintf(fp, "  printf(\"%%u %%s\\n\", result, \"%s\");\n", buf);
 
-  ret = system("/tmp/.expr");
-  if (ret != 0)
-  {
-    fprintf(stderr, "Error: Execution failed!\n");
-    return 1;
+    fprintf(fp, "  return 0;\n");
+    fprintf(fp, "}\n");
+    fclose(fp);
+
+    // 4. 编译这个小程序
+    int ret = system("gcc -O2 /tmp/.code.c -o /tmp/.expr -w");
+    if (ret != 0)
+    {
+      continue; // 编译失败（极少见），重试
+    }
+
+    // 5. 运行这个小程序
+    // 如果表达式里有除0，这里会返回非0值（崩溃）
+    // 2> /dev/null 的意思是：把错误信息（stderr）丢掉，不显示在屏幕上
+    ret = system("/tmp/.expr 2> /dev/null");
+
+    if (ret == 0)
+    {
+      i++;
+    }
   }
 
   return 0;

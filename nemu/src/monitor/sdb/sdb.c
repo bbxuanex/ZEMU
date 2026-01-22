@@ -50,17 +50,6 @@ static char *rl_gets()
 }
 static int cmd_test(char *args)
 {
-  printf("Generating expressions...\n");
-
-  int ret = system("/home/shuimushi/ics2025/nemu/tools/gen-expr/build/gen-expr 10000 > input_tenthousand.txt");
-
-  if (ret != 0)
-  {
-    printf("Error: Failed to generate expressions.\n");
-    printf("Make sure you have compiled gen-expr in tools/gen-expr/\n");
-    return 0;
-  }
-  printf("Generation done. Start testing...\n");
   FILE *fp = fopen("input_tenthousand.txt", "r");
   if (fp == NULL)
   {

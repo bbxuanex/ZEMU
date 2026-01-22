@@ -32,10 +32,10 @@ static char *code_format =
     "  printf(\"%%lu\", result); "
     "  return 0; "
     "}";
-
+// whats this?shuimushi
 static uint32_t choose(uint32_t n)
 {
-  return rand() % n;
+  return rand() % n; // return random value?shuimushi
 }
 
 static void gen_rand_expr(int length)
@@ -43,7 +43,7 @@ static void gen_rand_expr(int length)
   if (strlen(buf) > 500)
   {
     char num_buf[32];
-    sprintf(num_buf, "%d", choose(100));
+    sprintf(num_buf, "%d", choose(100)); // sprintf?what is that?shuimushi
     strcat(buf, num_buf);
     return;
   }
@@ -51,7 +51,7 @@ static void gen_rand_expr(int length)
   switch (choose(4))
   {
   case 0:
-  { // 生成数字
+  { // number generate
     char num_buf[32];
     // 减少十六进制生成的概率，防止因为无符号数溢出问题太复杂
     if (choose(5) == 0)
@@ -143,19 +143,24 @@ static void gen_rand_expr(int length)
 
 int main(int argc, char *argv[])
 {
-  int seed = time(0);
-  srand(seed);
-  int loop = 100;
+  int loop = 10000;
   if (argc > 1)
   {
     sscanf(argv[1], "%d", &loop);
   }
 
   int i;
+
+  FILE *fp = fopen("/tmp/.code.c", "w");
+  assert(fp != NULL);
+
+  fprintf(fp, "#include <stdio.h>\n");
+  fprintf(fp, "int main() {\n");
+  fprintf(fp, "  unsigned long result;\n");
+
   for (i = 0; i < loop; i++)
   {
     buf[0] = '\0';
-
     gen_rand_expr(0);
 
     if (strlen(buf) < 3)
@@ -164,35 +169,25 @@ int main(int argc, char *argv[])
       continue;
     }
 
-    // 移除了 insert_random_spaces() 调用，防止破坏双字符运算符
+    fprintf(fp, "  result = (unsigned long)(%s); ", buf);
+    fprintf(fp, "printf(\"%%lu %%s\\n\", result, \"%s\");\n", buf);
+  }
 
-    sprintf(code_buf, code_format, buf);
+  fprintf(fp, "  return 0;\n");
+  fprintf(fp, "}\n");
+  fclose(fp);
 
-    FILE *fp = fopen("/tmp/.code.c", "w");
-    assert(fp != NULL);
-    fputs(code_buf, fp);
-    fclose(fp);
-
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr -w");
-    if (ret != 0)
-    {
-      i--;
-      continue;
-    }
-
-    fp = popen("/tmp/.expr", "r");
-    assert(fp != NULL);
-
-    unsigned long result;
-    if (fscanf(fp, "%lu", &result) != 1)
-    {
-      pclose(fp);
-      i--;
-      continue;
-    }
-    pclose(fp);
-
-    printf("%lu %s\n", result, buf);
+  int ret = system("gcc -O2 /tmp/.code.c -o /tmp/.expr -w");
+  if (ret != 0)
+  {
+    fprintf(stderr, "Error: Compilation failed!\n");
+    return 1;
+  }
+  ret = system("/tmp/.expr");
+  if (ret != 0)
+  {
+    fprintf(stderr, "Error: Execution failed!\n");
+    return 1;
   }
   return 0;
 }

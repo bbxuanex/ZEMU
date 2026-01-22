@@ -50,10 +50,21 @@ static char *rl_gets()
 }
 static int cmd_test(char *args)
 {
+  printf("Generating expressions...\n");
+
+  int ret = system("../tools/gen-expr/build/gen-expr 10000 > input_tenthousand.txt");
+
+  if (ret != 0)
+  {
+    printf("Error: Failed to generate expressions.\n");
+    printf("Make sure you have compiled gen-expr in tools/gen-expr/\n");
+    return 0;
+  }
+  printf("Generation done. Start testing...\n");
   FILE *fp = fopen("input_tenthousand.txt", "r");
   if (fp == NULL)
   {
-    printf("Error: Could not open input.txt\n");
+    printf("Error: Could not open input_tenthousand.txt\n");
     return 0;
   }
 
@@ -86,7 +97,7 @@ static int cmd_test(char *args)
     }
 
     count++;
-    if (count % 100 == 0)
+    if (count % 1000 == 0)
       printf("Passed %d tests...\n", count);
   }
 

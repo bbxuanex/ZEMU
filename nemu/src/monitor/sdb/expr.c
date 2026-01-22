@@ -381,19 +381,7 @@ static word_t eval(int p, int q)
     if (op != -1)
     {
       word_t val1 = eval(p, op - 1);
-      word_t val2 = 0; // 先声明，但不计算
-
-      if (tokens[op].type == TK_AND && val1 == 0)
-      {
-        return 0;
-      }
-
-      if (tokens[op].type == TK_OR && val1 != 0)
-      {
-        return 1;
-      }
-
-      val2 = eval(op + 1, q);
+      word_t val2 = eval(op + 1, q);
 
       switch (tokens[op].type)
       {

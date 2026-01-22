@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     fclose(fp);
 
     // 4. 编译这个小程序
-    int ret = system("gcc -O2 /tmp/.code.c -o /tmp/.expr -w");
+    int ret = system("gcc -O0 /tmp/.code.c -o /tmp/.expr -w");
     if (ret != 0)
     {
       continue; // 编译失败（极少见），重试

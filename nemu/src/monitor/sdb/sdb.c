@@ -53,7 +53,7 @@ static int cmd_test(char *args)
   FILE *fp = fopen("input_real.txt", "r");
   if (fp == NULL)
   {
-    printf("Error: Could not open input_tenthousand.txt\n");
+    printf("Error: Could not open input_real.txt\n");
     return 0;
   }
 

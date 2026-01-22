@@ -24,15 +24,7 @@
 #define BUF_SIZE 65536
 
 static char buf[BUF_SIZE];
-static char code_buf[BUF_SIZE + 128];
-static char *code_format =
-    "#include <stdio.h>\n"
-    "int main() { "
-    "  unsigned long result = %s; "
-    "  printf(\"%%lu\", result); "
-    "  return 0; "
-    "}";
-// whats this?shuimushi
+
 static uint32_t choose(uint32_t n)
 {
   return rand() % n; // return random value?shuimushi

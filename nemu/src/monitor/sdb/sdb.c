@@ -50,7 +50,7 @@ static char *rl_gets()
 }
 static int cmd_test(char *args)
 {
-  FILE *fp = fopen("input.txt", "r");
+  FILE *fp = fopen("input_tenthousand.txt", "r");
   if (fp == NULL)
   {
     printf("Error: Could not open input.txt\n");
@@ -109,10 +109,10 @@ static int cmd_q(char *args)
 
 static int cmd_si(char *args)
 {
-  int n=1;
-  if(args!=NULL)
+  int n = 1;
+  if (args != NULL)
   {
-    n=atoi(args);
+    n = atoi(args);
   }
   if (n < 1)
   {

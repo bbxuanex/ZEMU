@@ -24,10 +24,18 @@
 #define BUF_SIZE 65536
 
 static char buf[BUF_SIZE];
+static char code_buf[BUF_SIZE + 128];
+static char *code_format =
+    "#include <stdio.h>\n"
+    "int main() { "
+    "  unsigned long result = %s; "
+    "  printf(\"%%lu\", result); "
+    "  return 0; "
+    "}";
 
 static uint32_t choose(uint32_t n)
 {
-  return rand() % n; // return random value?shuimushi
+  return rand() % n;
 }
 
 static void gen_rand_expr(int length)
@@ -35,7 +43,7 @@ static void gen_rand_expr(int length)
   if (strlen(buf) > 500)
   {
     char num_buf[32];
-    sprintf(num_buf, "%d", choose(100)); // sprintf?what is that?shuimushi
+    sprintf(num_buf, "%d", choose(100));
     strcat(buf, num_buf);
     return;
   }
@@ -43,7 +51,7 @@ static void gen_rand_expr(int length)
   switch (choose(4))
   {
   case 0:
-  { // number generate
+  { // 生成数字
     char num_buf[32];
     // 减少十六进制生成的概率，防止因为无符号数溢出问题太复杂
     if (choose(5) == 0)
@@ -135,61 +143,56 @@ static void gen_rand_expr(int length)
 
 int main(int argc, char *argv[])
 {
-  // 1. 初始化随机种子
-  srand(time(0));
-
-  int loop = 10000;
+  int seed = time(0);
+  srand(seed);
+  int loop = 100;
   if (argc > 1)
   {
     sscanf(argv[1], "%d", &loop);
   }
 
-  int i = 0;
-  while (i < loop)
+  int i;
+  for (i = 0; i < loop; i++)
   {
-    // 2. 生成随机表达式
     buf[0] = '\0';
+
     gen_rand_expr(0);
 
-    // 过滤太短的
     if (strlen(buf) < 3)
     {
+      i--;
       continue;
     }
 
-    // 3. 为【这一条】表达式单独生成一个 C 程序
+    // 移除了 insert_random_spaces() 调用，防止破坏双字符运算符
+
+    sprintf(code_buf, code_format, buf);
+
     FILE *fp = fopen("/tmp/.code.c", "w");
     assert(fp != NULL);
-
-    fprintf(fp, "#include <stdio.h>\n");
-    fprintf(fp, "#include <stdint.h>\n"); // 引入 uint32_t
-    fprintf(fp, "int main() {\n");
-
-    // 强制使用 uint32_t 计算，确保和 NEMU 行为一致
-    fprintf(fp, "  uint32_t result = %s;\n", buf);
-    fprintf(fp, "  printf(\"%%u %%s\\n\", result, \"%s\");\n", buf);
-
-    fprintf(fp, "  return 0;\n");
-    fprintf(fp, "}\n");
+    fputs(code_buf, fp);
     fclose(fp);
 
-    // 4. 编译这个小程序
-    int ret = system("gcc -O0 /tmp/.code.c -o /tmp/.expr -w");
+    int ret = system("gcc /tmp/.code.c -o /tmp/.expr -w");
     if (ret != 0)
     {
-      continue; // 编译失败（极少见），重试
+      i--;
+      continue;
     }
 
-    // 5. 运行这个小程序
-    // 如果表达式里有除0，这里会返回非0值（崩溃）
-    // 2> /dev/null 的意思是：把错误信息（stderr）丢掉，不显示在屏幕上
-    ret = system("/tmp/.expr 2> /dev/null");
+    fp = popen("/tmp/.expr", "r");
+    assert(fp != NULL);
 
-    if (ret == 0)
+    unsigned long result;
+    if (fscanf(fp, "%lu", &result) != 1)
     {
-      i++;
+      pclose(fp);
+      i--;
+      continue;
     }
-  }
+    pclose(fp);
 
+    printf("%lu %s\n", result, buf);
+  }
   return 0;
 }

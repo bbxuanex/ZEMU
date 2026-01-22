@@ -52,7 +52,7 @@ static int cmd_test(char *args)
 {
   printf("Generating expressions...\n");
 
-  int ret = system("../tools/gen-expr/build/gen-expr 10000 > input_tenthousand.txt");
+  int ret = system("/home/shuimushi/ics2025/nemu/tools/gen-expr/build/gen-expr 10000 > input_tenthousand.txt");
 
   if (ret != 0)
   {

@@ -376,14 +376,24 @@ static word_t eval(int p, int q)
   }
   else
   {
-    // 1. 尝试寻找主运算符（双目）
     int op = find_main_operator(p, q);
 
-    // 2. 如果找到了双目运算符，正常计算
     if (op != -1)
     {
       word_t val1 = eval(p, op - 1);
-      word_t val2 = eval(op + 1, q);
+      word_t val2 = 0; // 先声明，但不计算
+
+      if (tokens[op].type == TK_AND && val1 == 0)
+      {
+        return 0;
+      }
+
+      if (tokens[op].type == TK_OR && val1 != 0)
+      {
+        return 1;
+      }
+
+      val2 = eval(op + 1, q);
 
       switch (tokens[op].type)
       {
@@ -399,14 +409,14 @@ static word_t eval(int p, int q)
           printf("Error: Division by zero\n");
           return 0;
         }
-        return (sword_t)val1 / (sword_t)val2; // 👈 加上 (sword_t)
+        return (sword_t)val1 / (sword_t)val2;
       case '%':
         if (val2 == 0)
         {
           printf("Error: Modulo by zero\n");
           return 0;
         }
-        return (sword_t)val1 % (sword_t)val2; // 👈 加上 (sword_t)
+        return (sword_t)val1 % (sword_t)val2;
       case TK_EQ:
         return (sword_t)val1 == (sword_t)val2;
       case TK_NEQ:

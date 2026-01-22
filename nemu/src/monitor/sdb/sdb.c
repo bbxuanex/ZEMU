@@ -50,7 +50,7 @@ static char *rl_gets()
 }
 static int cmd_test(char *args)
 {
-  FILE *fp = fopen("input_tenthousand.txt", "r");
+  FILE *fp = fopen("input_real.txt", "r");
   if (fp == NULL)
   {
     printf("Error: Could not open input_tenthousand.txt\n");

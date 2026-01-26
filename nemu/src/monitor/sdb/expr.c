@@ -62,8 +62,8 @@ static struct rule
     {"!", TK_NOT},              // logical not
     {"-", '-'},                 // differ
     {"\\*", '*'},               // multiply
-    {"/", '/'},                 // chuhao
-    {"%", '%'},                 // mod
+    {"/", '/'},                 // division
+    {"%", '%'},                 // modulo
     {"\\(", '('},               // left
     {"\\)", ')'},               // right
     {"0x[0-9a-fA-F]+", TK_HEX}, // Hexadecimal
@@ -366,13 +366,13 @@ static word_t eval(int p, int q)
         printf("Unknown register: %s\n", tokens[p].str);
         return 0;
       }
-      return val;
+      return val; // 这里就是火种，从纯数字开始计算，返回纯数字给上一级eval
     }
     return strtoul(tokens[p].str, NULL, 0);
   }
   else if (check_parentheses(p, q) == true)
   {
-    return eval(p + 1, q - 1);
+    return eval(p + 1, q - 1); // 剥洋葱
   }
   else
   {
@@ -380,8 +380,8 @@ static word_t eval(int p, int q)
 
     if (op != -1)
     {
-      word_t val1 = eval(p, op - 1);
-      word_t val2 = eval(op + 1, q);
+      word_t val1 = eval(p, op - 1); // 分治，实现向火种靠近的目的，同时在下一级eval中，由于有找主运算符函数的递归 式存在，该级eval的运算方式也对应呈现
+      word_t val2 = eval(op + 1, q); // 分治
 
       switch (tokens[op].type)
       {

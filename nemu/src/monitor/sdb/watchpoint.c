@@ -30,7 +30,7 @@ typedef struct watchpoint
 
 static WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;
-#include <common.h>
+
 WP *new_wp();
 void free_wp(WP *wp);
 bool scan_watchpoint();
@@ -195,4 +195,4 @@ void list_watchpoint()
     p = p->next;
   }
 }
-  /* initial implement by [shuimushi] on 2025.12.27 */
+/* initial implement by [shuimushi] on 2025.12.27 */

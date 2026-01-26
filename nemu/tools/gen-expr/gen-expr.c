@@ -48,7 +48,9 @@ static void gen_rand_expr(int length)
     return;
   }
 
-  switch (choose(4))
+  switch (choose(4)) // 从这里往下看，可以看到choose4是有4个case与Default构成的，为什么呢，因为对近无穷可能的数来说，取模后得0，1，2，3（就是Default）的概率是等的
+                     // 同样的结构可以在双目运算符的构造中看到
+
   {
   case 0:
   { // 生成数字

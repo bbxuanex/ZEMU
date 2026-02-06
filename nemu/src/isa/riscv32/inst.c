@@ -207,59 +207,67 @@ static int decode_exec(Decode *s)
   INSTPAT("0000001 ????? ????? 010 ????? 01100 11", mulhsu, R, R(rd) = ((int64_t)(sword_t)src1 * (uint64_t)src2) >> 32);
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu, R, R(rd) = (src2 == 0 ? src1 : src1 % src2));
   INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem, R, {
-    // 1. 先保存操作数，避免宏多次求值
     uint32_t s1 = src1;
     uint32_t s2 = src2;
     uint32_t dest = rd;
 
-    printf(">>> REM: s1=0x%08x, s2=0x%08x, dest=%u\n", s1, s2, dest);
+    printf("=== REM START ===\n");
+    printf("s1 = 0x%08x (%d)\n", s1, (int32_t)s1);
+    printf("s2 = 0x%08x (%d)\n", s2, (int32_t)s2);
     fflush(stdout);
 
-    // 2. 转换为有符号数
     int32_t dividend = (int32_t)s1;
     int32_t divisor = (int32_t)s2;
-
-    printf(">>> REM: dividend=%d, divisor=%d\n", dividend, divisor);
-    fflush(stdout);
-
-    // 3. 计算结果
     uint32_t result;
 
     if (divisor == 0)
     {
-      printf(">>> REM: divisor == 0\n");
+      printf("Case: divisor == 0\n");
       fflush(stdout);
       result = s1;
     }
     else if (dividend == (int32_t)0x80000000 && divisor == -1)
     {
-      printf(">>> REM: overflow case\n");
+      printf("Case: overflow (0x80000000 / -1)\n");
       fflush(stdout);
       result = 0;
     }
     else
     {
-      printf(">>> REM: normal case\n");
+      printf("Case: normal, about to calculate %d / %d\n", dividend, divisor);
       fflush(stdout);
 
+      printf("Calculating quotient...\n");
+      fflush(stdout);
       int32_t q = dividend / divisor;
-      printf(">>> REM: q=%d\n", q);
+
+      printf("q = %d\n", q);
       fflush(stdout);
 
+      printf("Calculating remainder...\n");
+      fflush(stdout);
       int32_t r = dividend - q * divisor;
-      printf(">>> REM: r=%d\n", r);
+
+      printf("r = %d\n", r);
       fflush(stdout);
 
       result = (uint32_t)r;
     }
 
-    printf(">>> REM: result=0x%08x\n", result);
+    printf("result = 0x%08x\n", result);
     fflush(stdout);
 
-    // 4. 写回寄存器
-    cpu.gpr[dest] = result;
+    if (dest < 32)
+    {
+      cpu.gpr[dest] = result;
+      printf("cpu.gpr[%u] = 0x%08x\n", dest, cpu.gpr[dest]);
+    }
+    else
+    {
+      printf("ERROR: dest = %u (out of range)\n", dest);
+    }
 
-    printf(">>> REM: done, cpu.gpr[%u]=0x%08x\n", dest, cpu.gpr[dest]);
+    printf("=== REM END ===\n\n");
     fflush(stdout);
   });
 

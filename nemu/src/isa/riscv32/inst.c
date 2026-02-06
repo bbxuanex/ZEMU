@@ -205,19 +205,21 @@ static int decode_exec(Decode *s)
   INSTPAT("0000001 ????? ????? 010 ????? 01100 11", mulhsu, R, R(rd) = ((int64_t)(sword_t)src1 * (uint64_t)src2) >> 32);
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu, R, R(rd) = (src2 == 0 ? src1 : src1 % src2));
   INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem, R, {
-    int32_t rs1 = (int32_t)src1;
-    int32_t rs2 = (int32_t)src2;
-    if (rs2 == 0)
+    sword_t a = (sword_t)src1;
+    sword_t b = (sword_t)src2;
+
+    if (b == 0)
     {
-      R(rd) = rs1;
+      R(rd) = a;
     }
-    else if (rs1 == (int32_t)0x80000000 && rs2 == -1)
+    else if (a == INT32_MIN && b == -1)
     {
       R(rd) = 0;
     }
     else
     {
-      R(rd) = rs1 % rs2;
+      sword_t res = a % b;
+      R(rd) = res;
     }
   });
 

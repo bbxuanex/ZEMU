@@ -205,22 +205,35 @@ static int decode_exec(Decode *s)
   INSTPAT("0000001 ????? ????? 010 ????? 01100 11", mulhsu, R, R(rd) = ((int64_t)(sword_t)src1 * (uint64_t)src2) >> 32);
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu, R, R(rd) = (src2 == 0 ? src1 : src1 % src2));
   INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem, R, {
-    sword_t a = (sword_t)src1;
-    sword_t b = (sword_t)src2;
+    // 确保类型正确
+    int32_t dividend = (int32_t)(uint32_t)src1;
+    int32_t divisor = (int32_t)(uint32_t)src2;
+    int32_t result;
 
-    if (b == 0)
+    // 打印调试信息
+    printf("REM: dividend=%d, divisor=%d, rd=%u\n",
+           dividend, divisor, rd);
+
+    // 检查除数
+    if (divisor == 0)
     {
-      R(rd) = a;
+      result = dividend;
+      printf("  -> div by zero, result=%d\n", result);
     }
-    else if (a == INT32_MIN && b == -1)
+    else if (dividend == (int32_t)0x80000000 && divisor == -1)
     {
-      R(rd) = 0;
+      result = 0;
+      printf("  -> overflow, result=0\n");
     }
     else
     {
-      sword_t res = a % b;
-      R(rd) = res;
+      result = dividend % divisor;
+      printf("  -> normal, result=%d\n", result);
     }
+
+    // 写回寄存器
+    R(rd) = (uint32_t)result;
+    printf("  -> R(%u) = 0x%08x\n", rd, R(rd));
   });
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv, N, INV(s->pc));

@@ -212,33 +212,55 @@ static int decode_exec(Decode *s)
     uint32_t s2 = src2;
     uint32_t dest = rd;
 
+    printf(">>> REM: s1=0x%08x, s2=0x%08x, dest=%u\n", s1, s2, dest);
+    fflush(stdout);
+
     // 2. 转换为有符号数
     int32_t dividend = (int32_t)s1;
     int32_t divisor = (int32_t)s2;
+
+    printf(">>> REM: dividend=%d, divisor=%d\n", dividend, divisor);
+    fflush(stdout);
 
     // 3. 计算结果
     uint32_t result;
 
     if (divisor == 0)
     {
-      // 除数为 0
+      printf(">>> REM: divisor == 0\n");
+      fflush(stdout);
       result = s1;
     }
     else if (dividend == (int32_t)0x80000000 && divisor == -1)
     {
-      // 溢出
+      printf(">>> REM: overflow case\n");
+      fflush(stdout);
       result = 0;
     }
     else
     {
-      // 正常情况：手动计算余数
+      printf(">>> REM: normal case\n");
+      fflush(stdout);
+
       int32_t q = dividend / divisor;
+      printf(">>> REM: q=%d\n", q);
+      fflush(stdout);
+
       int32_t r = dividend - q * divisor;
+      printf(">>> REM: r=%d\n", r);
+      fflush(stdout);
+
       result = (uint32_t)r;
     }
 
+    printf(">>> REM: result=0x%08x\n", result);
+    fflush(stdout);
+
     // 4. 写回寄存器
     cpu.gpr[dest] = result;
+
+    printf(">>> REM: done, cpu.gpr[%u]=0x%08x\n", dest, cpu.gpr[dest]);
+    fflush(stdout);
   });
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv, N, INV(s->pc));

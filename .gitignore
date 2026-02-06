@@ -11,3 +11,5 @@
 !init.sh
 /fceux-am
 /am-kernels
+am-kernels/riscv-tests-am
+am-kernels/riscv-arch-test-am

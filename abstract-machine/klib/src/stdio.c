@@ -69,12 +69,14 @@ int vsprintf(char *out, const char *fmt, va_list ap)
         print_num(&out, val, 10, 1);
         break;
       case 's':
+      {
         char *str = va_arg(ap, char *);
         while (*str)
         {
           *out++ = *str++;
         }
         break;
+      }
       case 'u':
         val = va_arg(ap, int);
         print_num(&out, val, 10, 0);
@@ -132,12 +134,14 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list ap)
         print_num(&out, val, 10, 1);
         break;
       case 's':
+      {
         char *str = va_arg(ap, char *);
         while (*str && out < end)
         {
           *out++ = *str++;
         }
         break;
+      }
       case 'u':
         val = va_arg(ap, int);
         print_num(&out, val, 10, 0);

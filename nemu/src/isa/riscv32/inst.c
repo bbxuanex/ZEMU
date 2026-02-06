@@ -145,36 +145,7 @@ static int decode_exec(Decode *s)
   INSTPAT("??????? ????? ????? 001 ????? 11000 11", bne, B, if (src1 != src2) s->dnpc = s->pc + imm);
   INSTPAT("??????? ????? ????? 010 ????? 00000 11", lw, I, R(rd) = Mr(src1 + imm, 4));
   INSTPAT("0000001 ????? ????? 000 ????? 01100 11", mul, R, R(rd) = src1 * src2);
-  INSTPAT("0000001 ????? ????? 101 ????? 01100 11", divu, R, {
-    uint32_t rs1 = (uint32_t)src1;
-    uint32_t rs2 = (uint32_t)src2;
-    if (rs2 == 0)
-    {
-      R(rd) = -1;
-    }
-    else
-    {
-      R(rd) = rs1 / rs2;
-    }
-  });
-
   INSTPAT("0100000 ????? ????? 000 ????? 01100 11", sub, R, R(rd) = src1 - src2);
-  INSTPAT("0000001 ????? ????? 100 ????? 01100 11", div, R, {
-    int32_t rs1 = (int32_t)src1;
-    int32_t rs2 = (int32_t)src2;
-    if (rs2 == 0)
-    {
-      R(rd) = -1;
-    }
-    else if (rs1 == (int32_t)0x80000000 && rs2 == -1)
-    {
-      R(rd) = rs1;
-    }
-    else
-    {
-      R(rd) = rs1 / rs2;
-    }
-  });
   INSTPAT("??????? ????? ????? 011 ????? 00100 11", sltiu, I, R(rd) = ((word_t)src1 < (word_t)imm) ? 1 : 0);
   INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq, B, if (src1 == src2) s->dnpc = s->pc + imm);
   INSTPAT("0000000 ????? ????? 000 ????? 01100 11", add, R, R(rd) = src1 + src2);
@@ -220,6 +191,34 @@ static int decode_exec(Decode *s)
     else
     {
       R(rd) = a % b;
+    }
+  });
+  INSTPAT("0000001 ????? ????? 101 ????? 01100 11", divu, R, {
+    uint32_t rs1 = (uint32_t)src1;
+    uint32_t rs2 = (uint32_t)src2;
+    if (rs2 == 0)
+    {
+      R(rd) = -1;
+    }
+    else
+    {
+      R(rd) = rs1 / rs2;
+    }
+  });
+  INSTPAT("0000001 ????? ????? 100 ????? 01100 11", div, R, {
+    int32_t rs1 = (int32_t)src1;
+    int32_t rs2 = (int32_t)src2;
+    if (rs2 == 0)
+    {
+      R(rd) = -1;
+    }
+    else if (rs1 == (int32_t)0x80000000 && rs2 == -1)
+    {
+      R(rd) = rs1;
+    }
+    else
+    {
+      R(rd) = rs1 / rs2;
     }
   });
 

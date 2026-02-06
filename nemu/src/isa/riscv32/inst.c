@@ -207,24 +207,38 @@ static int decode_exec(Decode *s)
   INSTPAT("0000001 ????? ????? 010 ????? 01100 11", mulhsu, R, R(rd) = ((int64_t)(sword_t)src1 * (uint64_t)src2) >> 32);
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu, R, R(rd) = (src2 == 0 ? src1 : src1 % src2));
   INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem, R, {
-    int32_t dividend = (int32_t)src1;
-    int32_t divisor = (int32_t)src2;
-    int32_t result;
+    // 1. 先保存操作数，避免宏多次求值
+    uint32_t s1 = src1;
+    uint32_t s2 = src2;
+    uint32_t dest = rd;
+
+    // 2. 转换为有符号数
+    int32_t dividend = (int32_t)s1;
+    int32_t divisor = (int32_t)s2;
+
+    // 3. 计算结果
+    uint32_t result;
 
     if (divisor == 0)
     {
-      result = dividend;
+      // 除数为 0
+      result = s1;
     }
-    else if (dividend == INT32_MIN && divisor == -1)
+    else if (dividend == (int32_t)0x80000000 && divisor == -1)
     {
+      // 溢出
       result = 0;
     }
     else
     {
-      result = dividend % divisor;
+      // 正常情况：手动计算余数
+      int32_t q = dividend / divisor;
+      int32_t r = dividend - q * divisor;
+      result = (uint32_t)r;
     }
 
-    R(rd) = (uint32_t)result;
+    // 4. 写回寄存器
+    cpu.gpr[dest] = result;
   });
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv, N, INV(s->pc));

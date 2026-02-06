@@ -13,7 +13,7 @@ ifeq ($(MAKECMDGOALS),)
   .DEFAULT_GOAL = image
 endif
 
-### Override checks when `make clean/clean-all/html`
+### Override checks when `make clean/clean-all/html`toline44
 ifeq ($(findstring $(MAKECMDGOALS),clean|clean-all|html),)
 
 ### Print build info message

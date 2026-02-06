@@ -205,23 +205,30 @@ static int decode_exec(Decode *s)
   INSTPAT("0000001 ????? ????? 010 ????? 01100 11", mulhsu, R, R(rd) = ((int64_t)(sword_t)src1 * (uint64_t)src2) >> 32);
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu, R, R(rd) = (src2 == 0 ? src1 : src1 % src2));
   INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem, R, {
+    // 转换为有符号数
     int32_t dividend = (int32_t)src1;
     int32_t divisor = (int32_t)src2;
+    int32_t result;
 
+    // 处理特殊情况
     if (divisor == 0)
     {
-      R(rd) = dividend;
+      // 除数为 0：返回被除数
+      result = dividend;
     }
-    else if (dividend == (int32_t)0x80000000 && divisor == -1)
+    else if (dividend == INT32_MIN && divisor == -1)
     {
-      R(rd) = 0;
+      // 溢出情况：返回 0
+      result = 0;
     }
     else
     {
-      int32_t quotient = dividend / divisor;
-      int32_t remainder = dividend - quotient * divisor;
-      R(rd) = (uint32_t)remainder;
+      // 正常情况：计算余数
+      result = dividend % divisor;
     }
+
+    // 写回寄存器
+    R(rd) = (uint32_t)result;
   });
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv, N, INV(s->pc));

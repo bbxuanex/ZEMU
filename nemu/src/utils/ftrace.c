@@ -123,13 +123,12 @@ void init_ftrace(const char *elf_file)
 // 记录函数调用
 void ftrace_call(paddr_t pc, paddr_t target)
 {
-    // 打印缩进
-    printf("0x%08x: ", pc);
-    for (int i = 0; i < call_depth; i++)
-    {
-        printf("  ");
-    }
-    printf("call [%s@0x%08x]\n", find_func_name(target), target);
+    // %*s 的作用是打印指定宽度的字符串
+    // call_depth * 2 是宽度，"" 是内容（空字符串）
+    // 这样就实现了打印 call_depth * 2 个空格的效果
+    Log("0x%08x: %*scall [%s@0x%08x]",
+        pc, call_depth * 2, "", find_func_name(target), target);
+
     call_depth++;
 }
 
@@ -140,12 +139,8 @@ void ftrace_ret(paddr_t pc)
     if (call_depth < 0)
         call_depth = 0; // 防止下溢
 
-    printf("0x%08x: ", pc);
-    for (int i = 0; i < call_depth; i++)
-    {
-        printf("  ");
-    }
-    printf("ret  [%s]\n", find_func_name(pc));
+    Log("0x%08x: %*sret  [%s]",
+        pc, call_depth * 2, "", find_func_name(pc));
 }
 
 #endif

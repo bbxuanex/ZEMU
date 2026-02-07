@@ -23,7 +23,27 @@ void iringbuf_display();
 
 void display_mtrace(char type, paddr_t addr, int len, word_t data);
 
-// ...
+// ============== ftrace  ==============
+
+#ifdef CONFIG_FTRACE
+
+#define MAX_FUNC_NUM 256
+#define MAX_FUNC_NAME_LEN 64
+
+typedef struct
+{
+  char name[MAX_FUNC_NAME_LEN];
+  paddr_t addr;
+  size_t size;
+} FuncSymbol;
+
+void init_ftrace(const char *elf_file);
+
+void ftrace_call(paddr_t pc, paddr_t target);
+
+void ftrace_ret(paddr_t pc);
+
+#endif
 
 // ----------- state -----------
 

@@ -158,6 +158,17 @@ config MTRACE
       Enable memory trace to record memory access behaviors.
       Note: This will generate a huge amount of log!
 
+config CONFIG_FTRACE
+  bool "Enable function trace"
+  default n
+  help
+    Enable function call/return tracing.
+
+config CONFIG_FTRACE_COND
+  depends on CONFIG_FTRACE
+  bool "Enable conditional ftrace"
+  default n
+
 
 config DIFFTEST
   depends on TARGET_NATIVE_ELF

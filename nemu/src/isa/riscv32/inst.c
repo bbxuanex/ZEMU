@@ -241,7 +241,7 @@ static int decode_exec(Decode *s)
     { // rd == ra，函数调用
       ftrace_call(s->pc, s->dnpc);
     }
-    else if (rd == 0 && BITS(s->isa.inst.val, 19, 15) == 1)
+    else if (rd == 0 && BITS(s->isa.inst, 19, 15) == 1)
     {
       // rd == x0 且 rs1 == ra，这是 ret
       ftrace_ret(s->pc);

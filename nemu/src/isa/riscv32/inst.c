@@ -238,12 +238,12 @@ static int decode_exec(Decode *s)
     R(rd) = s->pc + 4;
 #ifdef CONFIG_FTRACE
     if (rd == 1)
-    { // rd == ra，函数调用
+    { // rd == ra, func usage
       ftrace_call(s->pc, s->dnpc);
     }
     else if (rd == 0 && BITS(s->isa.inst, 19, 15) == 1)
     {
-      // rd == x0 且 rs1 == ra，这是 ret
+      // rd == x0 && rs1 == ra，means ret
       ftrace_ret(s->pc);
     }
 #endif

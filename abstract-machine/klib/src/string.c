@@ -92,9 +92,8 @@ void *memmove(void *dst, const void *src, size_t n)
 
   if (s < d && d < s + n)
   {
-    d += n;
     s += n;
-
+    d += n;
     while (n-- > 0)
     {
       *--d = *--s;
@@ -107,7 +106,6 @@ void *memmove(void *dst, const void *src, size_t n)
       *d++ = *s++;
     }
   }
-
   return dst;
 }
 

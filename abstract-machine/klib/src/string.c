@@ -87,25 +87,27 @@ void *memset(void *s, int c, size_t n)
 
 void *memmove(void *dst, const void *src, size_t n)
 {
-  char *d = dst;
   const char *s = src;
+  char *d = dst;
 
-  if (d > s && d < s + n)
+  if (s < d && d < s + n)
   {
-    d += n - 1;
-    s += n - 1;
-    while (n--)
+    d += n;
+    s += n;
+
+    while (n-- > 0)
     {
-      *d-- = *s--;
+      *--d = *--s;
     }
   }
   else
   {
-    while (n--)
+    while (n-- > 0)
     {
       *d++ = *s++;
     }
   }
+
   return dst;
 }
 

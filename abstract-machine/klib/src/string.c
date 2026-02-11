@@ -51,9 +51,9 @@ int strcmp(const char *s1, const char *s2)
 {
   const unsigned char *S1 = (const unsigned char *)s1;
   const unsigned char *S2 = (const unsigned char *)s2;
-  for (; *S1 == *S2 && *S1 && *S2; S1++, S2++)
+  for (; *S1 == *S2 && *S1; S1++, S2++)
     ;
-  return (int)*S1 - (int)*S2;
+  return *S1 - *S2;
 }
 
 int strncmp(const char *s1, const char *s2, size_t n)
@@ -75,7 +75,7 @@ int strncmp(const char *s1, const char *s2, size_t n)
   return 0;
 }
 
-void *memset(void *s, int c, size_t n)
+void *memset(void *s, int c, size_t n) // kiss   todo:高性能读写，转换类型读写
 {
   unsigned char *p = s;
   while (n--)
@@ -85,7 +85,7 @@ void *memset(void *s, int c, size_t n)
   return s;
 }
 
-void *memmove(void *dst, const void *src, size_t n)
+void *memmove(void *dst, const void *src, size_t n) // kiss   todo:高性能读写，转换类型读写
 {
   const char *s = src;
   char *d = dst;
@@ -109,7 +109,7 @@ void *memmove(void *dst, const void *src, size_t n)
   return dst;
 }
 
-void *memcpy(void *out, const void *in, size_t n)
+void *memcpy(void *out, const void *in, size_t n) // kiss   todo:高性能读写，转换类型读写
 {
   char *d = out;
   const char *s = in;
@@ -120,7 +120,7 @@ void *memcpy(void *out, const void *in, size_t n)
   return out;
 }
 
-int memcmp(const void *s1, const void *s2, size_t n)
+int memcmp(const void *s1, const void *s2, size_t n) // kiss   todo:高性能读写，转换类型读写
 {
   const unsigned char *p1 = s1;
   const unsigned char *p2 = s2;

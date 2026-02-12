@@ -7,11 +7,12 @@ void __am_timer_init()
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime)
 {
-  uptime->us = 0;
-  uint32_t addr = RTC_ADDR;
-  uint32_t data_time_low = inl(addr);
-  uint32_t data_time_high = inl(addr + 4);
-  uptime->us = ((uint64_t)data_time_high) << 32 | (uint64_t)data_time_low;
+  // 读取 RTC 设备（64位寄存器，分两次读取）
+  uint32_t low = inl(RTC_ADDR);      // 读低 32 位
+  uint32_t high = inl(RTC_ADDR + 4); // 读高 32 位
+
+  // 拼接成 64 位微秒数
+  uptime->us = ((uint64_t)high << 32) | (uint64_t)low;
 }
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc)
 {

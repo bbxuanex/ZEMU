@@ -18,7 +18,11 @@
 #error unsupported ISA __ISA__
 #endif
 
+#if defined(__ARCH_X86_NEMU)
+#define DEVICE_BASE 0x0
+#else
 #define DEVICE_BASE 0xa0000000
+#endif
 
 #define MMIO_BASE 0xa0000000
 

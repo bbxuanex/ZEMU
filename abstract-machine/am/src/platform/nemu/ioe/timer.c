@@ -1,5 +1,8 @@
 #include <am.h>
 #include <nemu.h>
+#if RTC_ADDR != 0xa0000048
+#error "RTC_ADDR is wrong!"
+#endif
 
 void __am_timer_init()
 {

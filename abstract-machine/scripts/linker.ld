@@ -13,6 +13,8 @@ SECTIONS {
   .rodata : {
     *(.rodata*)
   }
+  PROVIDE(__global_pointer$ = . + 0x800);
+
   .data : {
     *(.data*)
   } : data

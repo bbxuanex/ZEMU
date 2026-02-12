@@ -181,7 +181,7 @@ static int format_core(char *out, char *end, const char *fmt, va_list ap)
       pad_and_write(&out, end, str, width, left_align);
       break;
     }
-    // BUG motherfucker!!!!!!!!!
+      // BUG motherfucker!!!!!!!!!
     case 'c':
     {
       int v = va_arg(ap, int);

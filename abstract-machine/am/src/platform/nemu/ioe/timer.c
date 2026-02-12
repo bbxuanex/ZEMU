@@ -7,7 +7,7 @@ void __am_timer_init()
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime)
 {
   uptime->us = 0;
-  uint32_t addr = 0xa0000048;
+  uint32_t addr = RTC_ADDR;
   uint32_t data_time_low = inl(addr);
   uint32_t data_time_high = inl(addr + 4);
   uptime->us = ((uint64_t)data_time_high) << 32 | (uint64_t)data_time_low;

@@ -4,7 +4,7 @@
 
 _start:
   mv s0, zero
-  li sp, 0x88000000
+  la sp, _stack_pointer
   call _trm_init
 
 .size _start, . - _start

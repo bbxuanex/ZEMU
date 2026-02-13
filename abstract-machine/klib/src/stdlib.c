@@ -93,12 +93,14 @@ void *malloc(size_t size)
       // 返回用户区域指针 (跳过 Header)
       return (void *)(curr + 1);
     }
-    // 4. 策略二：链表里没有合适的，向系统堆申请 (Bump Pointer)
-    // 检查是否会堆溢出
-    if ((uintptr_t)addr_brk + total_size > (uintptr_t)heap.end)
-    {
-      return NULL;
-    }
+    prev = curr;
+    curr = curr->next;
+  }
+  // 4. 策略二：链表里没有合适的，向系统堆申请 (Bump Pointer)
+  // 检查是否会堆溢出
+  if ((uintptr_t)addr_brk + total_size > (uintptr_t)heap.end)
+  {
+    return NULL;
   }
   // 分配新块
   header_t *new_block = (header_t *)addr_brk;

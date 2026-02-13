@@ -157,6 +157,8 @@ void init_monitor(int argc, char *argv[])
 
   /* Display welcome message. */
   welcome();
+  uint32_t *debug_ptr = (uint32_t *)guest_to_host(0x80006998);
+  printf("\n[DEBUG] 内存 0x80006998 处的值为: 0x%08x\n\n", *debug_ptr);
 }
 #else // CONFIG_TARGET_AM
 static long load_img()

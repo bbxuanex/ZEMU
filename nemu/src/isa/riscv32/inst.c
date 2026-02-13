@@ -79,7 +79,7 @@ enum
             (BITS(i, 30, 25) << 5) | \
             (BITS(i, 11, 8) << 1) |  \
             (BITS(i, 7, 7) << 11),   \
-        12);                         \
+        13);                         \
   } while (0)
 static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_t *imm, int type)
 {

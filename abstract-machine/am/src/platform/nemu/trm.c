@@ -1,5 +1,6 @@
 #include <am.h>
 #include <nemu.h>
+#include <klib.h>
 
 extern char _heap_start;
 int main(const char *args);
@@ -24,6 +25,7 @@ void halt(int code)
 void _trm_init()
 {
   putch('H');
+  printf("%x", heap.start);
   int ret = main(mainargs);
   halt(ret);
 }

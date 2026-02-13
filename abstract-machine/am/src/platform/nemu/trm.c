@@ -24,6 +24,10 @@ void halt(int code)
 
 void _trm_init()
 {
+  // 伪代码，需根据你现有的库函数调整
+  printf("Heap Start: %x\n", heap.start);
+  printf("Heap End:   %x\n", heap.end);
+
   int ret = main(mainargs);
   halt(ret);
 }

@@ -46,6 +46,7 @@ void *malloc(size_t size)
 #if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
   panic("Not implemented");
 #endif
+  return NULL;
 }
 
 void free(void *ptr)

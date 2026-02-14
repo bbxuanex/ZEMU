@@ -1,24 +1,11 @@
 #include <am.h>
 #include <nemu.h>
+#include <klib.h>
 
 #define SYNC_ADDR (VGACTL_ADDR + 4)
 
 void __am_gpu_init()
 {
-  int i;
-
-  // 这里的 w 和 h 不要写死 400/300，而是要动态获取！
-  // 方法 A: 直接再读一次寄存器 (简单粗暴)
-  uint32_t screen_size = inl(VGACTL_ADDR);
-  int w = screen_size & 0xffff;
-  int h = screen_size >> 16;
-
-  // ... 讲义里的测试代码 ...
-  uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
-  for (i = 0; i < w * h; i++)
-    fb[i] = i; // 写入颜色数据
-
-  outl(SYNC_ADDR, 1); // 触发同步
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T *cfg)
@@ -35,24 +22,24 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg)
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl)
 {
   int x = ctl->x, y = ctl->y, w = ctl->w, h = ctl->h;
-  if (!ctl->pixels && w == 0 && h == 0 && ctl->sync)
-  {
-    // 特殊情况：只同步，不绘图
-    outl(SYNC_ADDR, 1);
-    return;
-  }
 
-  uint32_t *pixels = ctl->pixels;
-  uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
-  uint32_t screen_w = inl(VGACTL_ADDR) >> 16; // 注意这里的高低位要和 config 保持一致
-
-  for (int i = 0; i < h; i++)
+  // 1. 只有当长宽都大于0且有像素数据时，才需要绘制
+  if (w > 0 && h > 0 && ctl->pixels != NULL)
   {
-    for (int j = 0; j < w; j++)
+    uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
+    uint32_t *pixels = ctl->pixels;
+    int screen_w = inl(VGACTL_ADDR) >> 16; // 获取屏幕宽度
+
+    for (int i = 0; i < h; i++)
     {
-      fb[(y + i) * screen_w + (x + j)] = pixels[i * w + j];
+      // 目标地址：显存基址 + (当前行号 * 屏幕宽) + x偏移
+      // 源地址：像素基址 + (当前行号 * 图片宽)
+      // 注意：这里必须是 + x，不能是 + i
+      memcpy(&fb[(y + i) * screen_w + x], &pixels[i * w], w * sizeof(uint32_t));
     }
   }
+
+  // 2. 绘制完成后，如果要求同步，再写寄存器
   if (ctl->sync)
   {
     outl(SYNC_ADDR, 1);

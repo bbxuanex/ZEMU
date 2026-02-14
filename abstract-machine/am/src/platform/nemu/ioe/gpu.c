@@ -5,20 +5,6 @@
 
 void __am_gpu_init()
 {
-  int i;
-
-  // 这里的 w 和 h 不要写死 400/300，而是要动态获取！
-  // 方法 A: 直接再读一次寄存器 (简单粗暴)
-  uint32_t screen_size = inl(VGACTL_ADDR);
-  int w = screen_size & 0xffff;
-  int h = screen_size >> 16;
-
-  // ... 讲义里的测试代码 ...
-  uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
-  for (i = 0; i < w * h; i++)
-    fb[i] = i; // 写入颜色数据
-
-  outl(SYNC_ADDR, 1); // 触发同步
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T *cfg)

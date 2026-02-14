@@ -95,14 +95,23 @@ void vga_update_screen()
   }
 }
 
+static void vga_ctl_io_handler(uint32_t offset, int len, bool is_write)
+{
+  assert(offset == 0 || offset == 4);
+  if (is_write && offset == 4)
+  {                      // 偏移量 4 对应 SYNC 寄存器
+    vga_update_screen(); // 核心：收到同步信号，刷新屏幕！
+  }
+}
+
 void init_vga()
 {
   vgactl_port_base = (uint32_t *)new_space(8);
   vgactl_port_base[0] = (screen_width() << 16) | screen_height();
 #ifdef CONFIG_HAS_PORT_IO
-  add_pio_map("vgactl", CONFIG_VGA_CTL_PORT, vgactl_port_base, 8, NULL);
+  add_pio_map("vgactl", CONFIG_VGA_CTL_PORT, vgactl_port_base, 8, vga_ctl_io_handler);
 #else
-  add_mmio_map("vgactl", CONFIG_VGA_CTL_MMIO, vgactl_port_base, 8, NULL);
+  add_mmio_map("vgactl", CONFIG_VGA_CTL_MMIO, vgactl_port_base, 8, vga_ctl_io_handler);
 #endif
 
   vmem = new_space(screen_size());

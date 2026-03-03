@@ -133,6 +133,45 @@ static int decode_exec(Decode *s)
     __VA_ARGS__;                                                     \
   }
 
+  word_t csr_read(word_t addr)
+  {
+    switch (addr)
+    {
+    case 0x300:
+      return cpu.mstatus;
+    case 0x305:
+      return cpu.mtvec;
+    case 0x341:
+      return cpu.mepc;
+    case 0x342:
+      return cpu.mcause;
+    default:
+      panic("Unknown CSR read 0x%x", addr);
+    }
+    return 0;
+  }
+
+  void csr_write(word_t addr, word_t val)
+  {
+    switch (addr)
+    {
+    case 0x300:
+      cpu.mstatus = val;
+      break;
+    case 0x305:
+      cpu.mtvec = val;
+      break;
+    case 0x341:
+      cpu.mepc = val;
+      break;
+    case 0x342:
+      cpu.mcause = val;
+      break;
+    default:
+      panic("Unknown CSR write 0x%x", addr);
+    }
+  }
+
   INSTPAT_START();
   INSTPAT("??????? ????? ????? ??? ????? 00101 11", auipc, U, R(rd) = s->pc + imm);
   INSTPAT("??????? ????? ????? 100 ????? 00000 11", lbu, I, R(rd) = Mr(src1 + imm, 1));
@@ -176,6 +215,65 @@ static int decode_exec(Decode *s)
   INSTPAT("0000001 ????? ????? 010 ????? 01100 11", mulhsu, R, R(rd) = ((int64_t)(sword_t)src1 * (uint64_t)src2) >> 32);
   INSTPAT("0000 ???? ???? 00000 000 00000 00011 11", fence, I, );
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu, R, R(rd) = (src2 == 0 ? src1 : src1 % src2));
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall, I, s->dnpc = isa_raise_intr(11, s->pc));
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret, I, s->dnpc = csr_read(0x341));
+  INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc, I, {
+    word_t t = csr_read(imm);
+    csr_write(imm,t&~src1);
+    R(rd) = t ; });
+  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw, I, {
+    word_t t = csr_read(imm);
+    csr_write(imm, src1);
+    R(rd) = t;
+  });
+
+  // 2. csrrs: Atomic Read and Set Bits
+  // 逻辑: t = CSR[imm]; CSR[imm] = t | src1; rd = t;
+  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs, I, {
+    word_t t = csr_read(imm);
+    csr_write(imm, t | src1);
+    R(rd) = t;
+  });
+
+  // 3. csrrc: Atomic Read and Clear Bits
+  // 逻辑: t = CSR[imm]; CSR[imm] = t & ~src1; rd = t;
+  INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc, I, {
+    word_t t = csr_read(imm);
+    csr_write(imm, t & ~src1);
+    R(rd) = t;
+  });
+
+  // =================================================================
+  // Immediate Versions (使用 zimm)
+  // zimm 位于指令的 19:15 位，即 rs1 字段
+  // =================================================================
+
+  // 4. csrrwi: CSR Read/Write Immediate
+  // 逻辑: t = CSR[imm]; CSR[imm] = zimm; rd = t;
+  INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi, I, {
+    word_t zimm = BITS(s->isa.inst, 19, 15); // 手动提取 zimm
+    word_t t = csr_read(imm);
+    csr_write(imm, zimm);
+    R(rd) = t;
+  });
+
+  // 5. csrrsi: CSR Read and Set Immediate
+  // 逻辑: t = CSR[imm]; CSR[imm] = t | zimm; rd = t;
+  INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi, I, {
+    word_t zimm = BITS(s->isa.inst, 19, 15);
+    word_t t = csr_read(imm);
+    csr_write(imm, t | zimm);
+    R(rd) = t;
+  });
+
+  // 6. csrrci: CSR Read and Clear Immediate
+  // 逻辑: t = CSR[imm]; CSR[imm] = t & ~zimm; rd = t;
+  INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci, I, {
+    word_t zimm = BITS(s->isa.inst, 19, 15);
+    word_t t = csr_read(imm);
+    csr_write(imm, t & ~zimm);
+    R(rd) = t;
+  });
   INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem, R, {
     int32_t a = src1;
     int32_t b = src2;

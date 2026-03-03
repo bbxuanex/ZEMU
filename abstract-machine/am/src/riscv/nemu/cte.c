@@ -8,6 +8,7 @@ Context *__am_irq_handle(Context *c)
 {
   if (user_handler)
   {
+    printf("DEBUG: mcause=%d (0x%x), mepc=0x%x\n", c->mcause, c->mcause, c->mepc);
     Event ev = {0};
     switch (c->mcause)
     {

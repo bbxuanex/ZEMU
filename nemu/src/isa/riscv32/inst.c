@@ -217,10 +217,6 @@ static int decode_exec(Decode *s)
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu, R, R(rd) = (src2 == 0 ? src1 : src1 % src2));
   INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall, I, s->dnpc = isa_raise_intr(11, s->pc));
   INSTPAT("0011000 00010 00000 000 00000 11100 11", mret, I, s->dnpc = csr_read(0x341));
-  INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc, I, {
-    word_t t = csr_read(imm);
-    csr_write(imm,t&~src1);
-    R(rd) = t ; });
   INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw, I, {
     word_t t = csr_read(imm);
     csr_write(imm, src1);

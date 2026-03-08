@@ -175,6 +175,12 @@ config DTRACE
   help
     Enable device trace to have a brighter vision.
 
+config ETRACE
+  bool "Enable exception trace"
+  default n
+  help
+    Enable exception trace to have a 
+
 config DIFFTEST
   depends on TARGET_NATIVE_ELF
   bool "Enable differential testing"

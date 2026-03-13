@@ -6,7 +6,7 @@ static Context *do_event(Event e, Context *c)
   {
     // TODO: add more event dispatching.
   case EVENT_YIELD:
-    printf("Boy, Done!");
+    printf("Boy, Done!\n");
     break;
   default:
     panic("Unhandled event ID = %d", e.event);

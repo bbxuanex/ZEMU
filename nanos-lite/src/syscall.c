@@ -22,7 +22,7 @@ void do_syscall(Context *c)
   default:
     panic("Unhandled syscall ID = %d", a[0]);
   }
-#ifdef CONFIG_STRACE
+  // #ifdef CONFIG_STRACE
   static const char *syscall_name[] = {
       [SYS_exit] = "exit",
       [SYS_yield] = "yield",
@@ -49,5 +49,5 @@ void do_syscall(Context *c)
   if (a[0] < NR_syscall && syscall_name[a[0]])
     name = syscall_name[a[0]];
   printf("STRACE: Syscall_ID=%s, arg1=0x%x, arg2=0x%x, arg3=0x%x, ret=0x%x. \n", name, a[1], a[2], a[3], c->GPRx);
-#endif
+  // #endif
 }

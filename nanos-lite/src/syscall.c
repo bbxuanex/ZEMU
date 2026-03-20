@@ -40,6 +40,26 @@ void do_syscall(Context *c)
     yield();
     c->GPRx = 0;
     break;
+  case SYS_write:
+    const char *buf = (const char *)a[2];
+    size_t len = (size_t)a[3];
+
+    if (!buf && len > 0)
+    {
+      c->GPRx = -1;
+      break;
+    }
+    if (a[1] == 1 || a[1] == 2)
+    {
+      for (int i = 0; i < len; ++i)
+        putch(buf[i]);
+      c->GPRx = len;
+    }
+    else
+    {
+      c->GPRx = -1;
+    }
+    break;
   default:
     panic("Unhandled syscall ID = %d", a[0]);
   }

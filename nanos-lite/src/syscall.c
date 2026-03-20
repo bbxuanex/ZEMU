@@ -39,9 +39,6 @@ void do_syscall(Context *c)
 #endif
   switch (a[0])
   {
-  case SYS_exit:
-    halt(a[1]);
-    break;
   case SYS_yield:
     yield();
     c->GPRx = 0;

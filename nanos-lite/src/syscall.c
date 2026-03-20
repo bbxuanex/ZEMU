@@ -67,6 +67,6 @@ void do_syscall(Context *c)
 #ifdef CONFIG_STRACE
   if (a[0] < NR_syscall && syscall_name[a[0]])
     name = syscall_name[a[0]];
-  printf("STRACE: Syscall_ID=%s, arg1=0x%x, arg2=0x%x, arg3=0x%x, ret=0x%x. \n", name, a[1], a[2], a[3], c->GPRx);
+  Log("STRACE: Syscall_ID=%s, arg1=0x%x, arg2=0x%x, arg3=0x%x, ret=0x%x. \n", name, a[1], a[2], a[3], c->GPRx);
 #endif
 }

@@ -11,5 +11,6 @@
 #include <klib.h>
 #include <klib-macros.h>
 #include <debug.h>
+#include <generated/autoconf.h>
 
 #endif

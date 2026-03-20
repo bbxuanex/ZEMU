@@ -179,7 +179,14 @@ config ETRACE
   bool "Enable exception trace"
   default n
   help
-    Enable exception trace to have a 
+    Enable exception trace to have a high layer vision
+
+config STRACE
+  bool "Enable syscall trace"
+  default n
+  help
+    Enable syscall trace to have a high layer vision
+
 
 config DIFFTEST
   depends on TARGET_NATIVE_ELF

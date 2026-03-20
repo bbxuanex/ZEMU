@@ -31,12 +31,7 @@ void do_syscall(Context *c)
   a[1] = c->GPR2;
   a[2] = c->GPR3;
   a[3] = c->GPR4;
-  // #ifdef CONFIG_STRACE
-  const char *name = "Unknown Syscall_ID";
-  if (a[0] < NR_syscall && syscall_name[a[0]])
-    name = syscall_name[a[0]];
-  printf("STRACE: Syscall_ID=%s, arg1=0x%x, arg2=0x%x, arg3=0x%x, ret=0x%x. \n", name, a[1], a[2], a[3], c->GPRx);
-  // #endif
+
   switch (a[0])
   {
   case SYS_exit:
@@ -49,4 +44,10 @@ void do_syscall(Context *c)
   default:
     panic("Unhandled syscall ID = %d", a[0]);
   }
+  // #ifdef CONFIG_STRACE
+  const char *name = "Unknown Syscall_ID";
+  if (a[0] < NR_syscall && syscall_name[a[0]])
+    name = syscall_name[a[0]];
+  printf("STRACE: Syscall_ID=%s, arg1=0x%x, arg2=0x%x, arg3=0x%x, ret=0x%x. \n", name, a[1], a[2], a[3], c->GPRx);
+  // #endif
 }

@@ -37,6 +37,7 @@ void do_syscall(Context *c)
     name = syscall_name[a[0]];
   Log("STRACE: Syscall_ID=%s, arg1=0x%lx, arg2=0x%lx, arg3=0x%lx, ret=0x%lx. ", name, a[1], a[2], a[3], c->GPRx);
 #endif
+  printf("here");
   switch (a[0])
   {
   case SYS_exit:

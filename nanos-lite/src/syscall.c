@@ -1,6 +1,6 @@
 #include <common.h>
 #include "syscall.h"
-#ifdef CONFIG_STRACE
+// #ifdef CONFIG_STRACE
 static const char *syscall_name[] = {
     [SYS_exit] = "exit",
     [SYS_yield] = "yield",
@@ -23,7 +23,7 @@ static const char *syscall_name[] = {
     [SYS_times] = "times",
     [SYS_gettimeofday] = "gettimeofday"};
 #define NR_syscall sizeof(syscall_name) / sizeof(syscall_name[0])
-#endif
+
 void do_syscall(Context *c)
 {
   uintptr_t a[4];
@@ -31,14 +31,17 @@ void do_syscall(Context *c)
   a[1] = c->GPR2;
   a[2] = c->GPR3;
   a[3] = c->GPR4;
-#ifdef CONFIG_STRACE
+  // #ifdef CONFIG_STRACE
   const char *name = "Unknown Syscall_ID";
   if (a[0] < NR_syscall && syscall_name[a[0]])
     name = syscall_name[a[0]];
   printf("STRACE: Syscall_ID=%s, arg1=0x%lx, arg2=0x%lx, arg3=0x%lx, ret=0x%lx. \n", name, a[1], a[2], a[3], c->GPRx);
-#endif
+  // #endif
   switch (a[0])
   {
+  case SYS_exit:
+    halt(a[1]);
+    break;
   case SYS_yield:
     yield();
     c->GPRx = 0;

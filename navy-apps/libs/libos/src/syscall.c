@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <time.h>
 #include "syscall.h"
-
+extern char end;
 // helper macros
 #define _concat(x, y) x##y
 #define concat(x, y) _concat(x, y)

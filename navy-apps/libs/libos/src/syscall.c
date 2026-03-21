@@ -82,12 +82,6 @@ void *_sbrk(intptr_t increment)
   intptr_t new = (intptr_t)cur_brk + increment;
 
   intptr_t ret = _syscall_(SYS_brk, new, 0, 0);
-  char buf[128];
-  int n = sprintf(buf,
-                  "[sbrk] inc=%ld old=%p new=%p ret=%ld\n",
-                  (long)increment, (void *)old_brk, (void *)new_brk, (long)ret);
-  if (n > 0)
-    _write(1, buf, n);
   if (!ret)
   {
     cur_brk = (char *)new;

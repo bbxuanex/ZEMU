@@ -1,8 +1,5 @@
 #include <common.h>
 #include "syscall.h"
-#ifndef CONFIG_STRACE
-#error "CONFIG_STRACE not defined in nanos-lite build"
-#endif
 
 #ifdef CONFIG_STRACE
 static const char *syscall_name[] = {
@@ -64,6 +61,9 @@ void do_syscall(Context *c)
     {
       c->GPRx = -1;
     }
+    break;
+  case SYS_brk:
+    c->GPRx = 0;
     break;
   default:
     panic("Unhandled syscall ID = %d", a[0]);

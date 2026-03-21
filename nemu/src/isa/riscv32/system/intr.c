@@ -83,7 +83,7 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc)
       break;
     }
   }
-  printf("ETRACE: Exception at PC = 0x%08x, cause = %d [%s]\n", epc, cause, exception);
+  Log("ETRACE: Exception at PC = 0x%08x, cause = %d [%s]\n", epc, cause, exception);
 #endif
   cpu.mcause = NO;
   cpu.mepc = epc;

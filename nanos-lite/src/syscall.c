@@ -30,6 +30,8 @@ const char *name = "Unknown Syscall_ID";
 #endif
 void do_syscall(Context *c)
 {
+  panic("REACH do_syscall");
+
   uintptr_t a[4];
   a[0] = c->GPR1;
   a[1] = c->GPR2;
@@ -47,7 +49,7 @@ void do_syscall(Context *c)
 
   case SYS_open:
   {
-    printf("sysno=%d a1=%x a2=%x a3=%x", (int)a[0], (uint32_t)a[1], (uint32_t)a[2], (uint32_t)a[3]);
+    Log("sysno=%d a1=%x a2=%x a3=%x", (int)a[0], (uint32_t)a[1], (uint32_t)a[2], (uint32_t)a[3]);
 
     const char *path = (const char *)a[1];
     int flags = a[2];

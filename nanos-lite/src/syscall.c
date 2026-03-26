@@ -47,6 +47,8 @@ void do_syscall(Context *c)
 
   case SYS_open:
   {
+    Log("sysno=%d a1=%x a2=%x a3=%x", (int)a[0], (uint32_t)a[1], (uint32_t)a[2], (uint32_t)a[3]);
+
     const char *path = (const char *)a[1];
     int flags = a[2];
     int mode = (int)a[3];

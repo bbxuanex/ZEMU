@@ -53,6 +53,8 @@ void init_fs()
 
 int fs_open(const char *pathname, int flags, int mode)
 {
+  assert(pathname != NULL);
+
   int i = 0;
   while (i < ARRAY_LEN && strcmp(file_table[i].name, pathname))
   {

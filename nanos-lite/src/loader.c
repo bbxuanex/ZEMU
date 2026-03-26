@@ -1,6 +1,8 @@
 #include <proc.h>
 #include <elf.h>
 #include <string.h>
+#include <unistd.h>
+#include <fs.h>
 
 #ifdef __LP64__
 #define Elf_Ehdr Elf64_Ehdr
@@ -26,8 +28,11 @@ size_t get_ramdisk_size();
 
 static uintptr_t loader(PCB *pcb, const char *filename)
 {
+  int fd = fs_open(filename, 0, 0);
+
   Elf_Ehdr ehdr;
-  ramdisk_read(&ehdr, 0, sizeof(Elf_Ehdr));
+  fs_lseek(fd, 0, SEEK_SET);
+  fs_read(fd, &ehdr, sizeof(Elf_Ehdr));
 
   // check magic number
   assert(*(uint32_t *)ehdr.e_ident == 0x464c457f);
@@ -38,18 +43,21 @@ static uintptr_t loader(PCB *pcb, const char *filename)
   {
     // figure out program header's offset and read
     size_t phdr_offset = ehdr.e_phoff + i * sizeof(Elf_Phdr);
-    ramdisk_read(&phdr, phdr_offset, sizeof(Elf_Phdr));
+    fs_lseek(fd, phdr_offset, SEEK_SET);
+    fs_read(fd, &phdr, sizeof(Elf_Phdr));
 
     // filter and load segment typed PT_LOAD
     if (phdr.p_type == PT_LOAD)
     {
       // act1
-      ramdisk_read((void *)phdr.p_vaddr, phdr.p_offset, phdr.p_filesz);
+      fs_lseek(fd, phdr.p_offset, SEEK_SET);
+      fs_read(fd, (void *)phdr.p_vaddr, phdr.p_filesz);
       // act2
       memset((void *)(phdr.p_vaddr + phdr.p_filesz), 0, phdr.p_memsz - phdr.p_filesz);
     }
   }
 
+  fs_close(fd);
   return ehdr.e_entry;
 }
 

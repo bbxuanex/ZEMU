@@ -1,5 +1,7 @@
 #include <common.h>
 #include "syscall.h"
+#include <unistd.h>
+#include <fs.h>
 
 #ifdef CONFIG_STRACE
 static const char *syscall_name[] = {
@@ -42,29 +44,62 @@ void do_syscall(Context *c)
     yield();
     c->GPRx = 0;
     break;
-  case SYS_write:
-    const char *buf = (const char *)a[2];
-    size_t len = (size_t)a[3];
 
-    if (!buf && len > 0)
-    {
-      c->GPRx = -1;
-      break;
-    }
-    if (a[1] == 1 || a[1] == 2)
-    {
-      for (int i = 0; i < len; ++i)
-        putch(buf[i]);
-      c->GPRx = len;
-    }
-    else
-    {
-      c->GPRx = -1;
-    }
+  case SYS_open:
+  {
+    const char *path = (const char *)a[1];
+    int flags = a[2];
+    int mode = (int)a[3];
+
+    int ret = fs_open(path, flags, mode);
+    c->GPRx = ret;
+
     break;
+  }
+  case SYS_read:
+  {
+    int fd = a[1];
+    void *buf = (void *)a[2];
+    size_t count = (size_t)a[3];
+
+    size_t ret = fs_read(fd, buf, count);
+    c->GPRx = ret;
+
+    break;
+  }
+  case SYS_write:
+  {
+    int fd = a[1];
+    const char *buf = (const char *)a[2];
+    size_t count = (size_t)a[3];
+
+    size_t ret = fs_write(fd, buf, count);
+    c->GPRx = ret;
+
+    break;
+  }
+  case SYS_close:
+  {
+    int fd = a[1];
+
+    int ret = fs_close(fd);
+    c->GPRx = ret;
+
+    break;
+  }
+  case SYS_lseek:
+  {
+    int fd = a[1];
+    size_t offset = (size_t)a[2];
+    int whence = a[3];
+
+    size_t ret = fs_lseek(fd, offset, whence);
+    c->GPRx = ret;
+
+    break;
+  }
   case SYS_brk:
     c->GPRx = 0;
-    Log("here");
     break;
   default:
     panic("Unhandled syscall ID = %d", a[0]);

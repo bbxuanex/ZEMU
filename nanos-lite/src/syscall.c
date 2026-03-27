@@ -2,7 +2,6 @@
 #include "syscall.h"
 #include <unistd.h>
 #include <fs.h>
-
 #ifdef CONFIG_STRACE
 static const char *syscall_name[] = {
     [SYS_exit] = "exit",
@@ -27,7 +26,19 @@ static const char *syscall_name[] = {
     [SYS_gettimeofday] = "gettimeofday"};
 #define NR_syscall sizeof(syscall_name) / sizeof(syscall_name[0])
 const char *name = "Unknown Syscall_ID";
+
+#define STRACE_MAX_FD 64
+static const char *fd2path[STRACE_MAX_FD];
+
+static inline const char *fd_name(int fd)
+{
+  if (fd >= 0 && fd < STRACE_MAX_FD && fd2path[fd] != NULL)
+    return fd2path[fd];
+  return "unknown-fd";
+}
+
 #endif
+
 void do_syscall(Context *c)
 {
 
@@ -57,6 +68,15 @@ void do_syscall(Context *c)
     int ret = fs_open(path, flags, mode);
     c->GPRx = ret;
 
+#ifdef CONFIG_STRACE
+    if (ret >= 0 && ret < STRACE_MAX_FD)
+    {
+      fd2path[ret] = path;
+    }
+    Log("STRACE: open(path=%s, flags=0x%x, mode=0x%x) = %d",
+        path ? path : "NULL", flags, mode, ret);
+#endif
+
     break;
   }
   case SYS_read:
@@ -67,6 +87,11 @@ void do_syscall(Context *c)
 
     size_t ret = fs_read(fd, buf, count);
     c->GPRx = ret;
+
+#ifdef CONFIG_STRACE
+    Log("STRACE: read(fd=%d[%s],count=%u) = %u",
+        fd, fd_name(fd), count, ret);
+#endif
 
     break;
   }
@@ -79,6 +104,11 @@ void do_syscall(Context *c)
     size_t ret = fs_write(fd, buf, count);
     c->GPRx = ret;
 
+#ifdef CONFIG_STRACE
+    Log("STRACE: read(fd=%d[%s],count=%u) = %u",
+        fd, fd_name(fd), (unsigned)count, (unsigned)ret);
+#endif
+
     break;
   }
   case SYS_close:
@@ -87,6 +117,11 @@ void do_syscall(Context *c)
 
     int ret = fs_close(fd);
     c->GPRx = ret;
+
+#ifdef CONFIG_STRACE
+    Log("STRACE: read(fd=%d[%s]) = %u",
+        fd, fd_name(fd), ret);
+#endif
 
     break;
   }
@@ -99,6 +134,11 @@ void do_syscall(Context *c)
     size_t ret = fs_lseek(fd, offset, whence);
     c->GPRx = ret;
 
+#ifdef CONFIG_STRACE
+    Log("STRACE: read(fd=%d[%s]) = %u",
+        fd, fd_name(fd), ret);
+#endif
+
     break;
   }
   case SYS_brk:
@@ -110,6 +150,7 @@ void do_syscall(Context *c)
 #ifdef CONFIG_STRACE
   if (a[0] < NR_syscall && syscall_name[a[0]])
     name = syscall_name[a[0]];
-  Log("STRACE: Syscall_ID=%s, arg1=0x%x, arg2=0x%x, arg3=0x%x, ret=0x%x. \n", name, a[1], a[2], a[3], c->GPRx);
+
+  Log("STRACE: Syscall_ID=%s, arg2=0x%x, arg3=0x%x, ret=0x%x. \n", name, a[1], a[2], a[3], c->GPRx);
 #endif
 }

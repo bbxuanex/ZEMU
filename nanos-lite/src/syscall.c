@@ -30,7 +30,6 @@ const char *name = "Unknown Syscall_ID";
 #endif
 void do_syscall(Context *c)
 {
-  panic("REACH do_syscall");
 
   uintptr_t a[4];
   a[0] = c->GPR1;

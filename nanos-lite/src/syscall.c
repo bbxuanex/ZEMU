@@ -2,6 +2,7 @@
 #include "syscall.h"
 #include <unistd.h>
 #include <fs.h>
+#include <sys/time.h>
 #ifdef CONFIG_STRACE
 static const char *syscall_name[] = {
     [SYS_exit] = "exit",
@@ -146,10 +147,22 @@ void do_syscall(Context *c)
     break;
   default:
     panic("Unhandled syscall ID = %d", a[0]);
+  case SYS_gettimeofday:
+  {
+    struct timeval *tv = (struct timeval *)a[1];
+    if (tv == NULL)
+      c->GPRx = -1;
+    break;
+    AM_TIMER_UPTIME_T uptime = io_read(AM_TIMER_UPTIME);
+    tv->tv_usec = uptime.us % 1000000;
+    tv->tv_sec = uptime.us / 1000000;
+    c->GPRx = 0;
+    break;
   }
 #ifdef CONFIG_STRACE
-  if (a[0] < NR_syscall && syscall_name[a[0]])
-    name = syscall_name[a[0]];
+    if (a[0] < NR_syscall && syscall_name[a[0]])
+      name = syscall_name[a[0]];
+  }
 
   Log("STRACE: Syscall_ID=%s, arg2=0x%x, arg3=0x%x, ret=0x%x. \n", name, a[1], a[2], a[3], c->GPRx);
 #endif

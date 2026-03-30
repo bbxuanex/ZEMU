@@ -7,7 +7,7 @@ int main(void)
 
     while (1)
     {
-        _gettimeofday(&tv, NULL);
+        gettimeofday(&tv, NULL);
 
         unsigned long long now = (unsigned long long)tv.tv_usec + (unsigned long long)tv.tv_sec * (unsigned long long)1000000;
 

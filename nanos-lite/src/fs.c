@@ -38,11 +38,13 @@ size_t invalid_write(const void *buf, size_t offset, size_t len)
   return 0;
 }
 
+size_t serial_write(const void *buf, size_t offset, size_t len);
+
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
     [FD_STDIN] = {"stdin", 0, 0, invalid_read, invalid_write},
-    [FD_STDOUT] = {"stdout", 0, 0, invalid_read, invalid_write},
-    [FD_STDERR] = {"stderr", 0, 0, invalid_read, invalid_write},
+    [FD_STDOUT] = {"stdout", 0, 0, invalid_read, serial_write},
+    [FD_STDERR] = {"stderr", 0, 0, invalid_read, serial_write},
 #include "files.h"
 };
 
@@ -71,31 +73,25 @@ size_t fs_write(int fd, const void *buf, size_t count)
     panic("WRONG FD in FS_WRITE");
 
   size_t num = count;
-  bool is_overflow = false;
-
-  if (fd == 1 || fd == 2)
+  size_t ret = -1;
+  if (file_table[fd].write == NULL)
   {
-    const char *std_buf = (const char *)buf;
-    if (!std_buf && count > 0)
+    bool is_overflow = false;
+    if ((file_table[fd].open_offset) + (count) > (file_table[fd].size))
     {
-      return -1;
+      is_overflow = true;
     }
-    for (int i = 0; i < count; ++i)
-      putch(std_buf[i]);
-    return count;
+    if (is_overflow)
+    {
+      num = file_table[fd].size - file_table[fd].open_offset;
+    }
+
+    ret = (size_t)ramdisk_write(buf, file_table[fd].open_offset + file_table[fd].disk_offset, num);
+    file_table[fd].open_offset += num;
   }
 
-  if ((off_t)(file_table[fd].open_offset) + (off_t)(count) > (off_t)(file_table[fd].size))
-  {
-    is_overflow = true;
-  }
-  if (is_overflow)
-  {
-    num = file_table[fd].size - file_table[fd].open_offset;
-  }
-
-  size_t ret = (size_t)ramdisk_write(buf, file_table[fd].open_offset + file_table[fd].disk_offset, num);
-  file_table[fd].open_offset += num;
+  else
+    ret = (size_t)(file_table[fd].write)(buf, file_table[fd].disk_offset, count);
 
   return ret;
 }

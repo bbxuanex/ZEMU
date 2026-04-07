@@ -17,6 +17,7 @@ int main(void)
         if (now - last >= 500)
         {
             printf("time has just passed 0.5s!\n");
+            printf("now time is %u\n", now);
             last = now;
         }
     }

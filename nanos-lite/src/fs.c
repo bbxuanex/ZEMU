@@ -60,15 +60,23 @@ int fs_open(const char *pathname, int flags, int mode)
 {
   assert(pathname != NULL);
 
-  int i = 0;
-  while (i < ARRAY_LEN && strcmp(file_table[i].name, pathname))
+  for (int i = 0; i < ARRAY_LEN; i++)
   {
-    ++i;
-  }
-  assert(i < ARRAY_LEN);
+    if (file_table[i].name == NULL)
+    {
+      continue;
+    }
 
-  file_table[i].open_offset = 0;
-  return i;
+    if (strcmp(file_table[i].name, pathname) == 0)
+    {
+      file_table[i].open_offset = 0;
+      return i;
+    }
+  }
+
+  printf("Error: file '%s' not found!\n", pathname);
+  assert(0);
+  return -1;
 }
 size_t fs_write(int fd, const void *buf, size_t count)
 {

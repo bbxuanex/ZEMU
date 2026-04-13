@@ -127,7 +127,7 @@ size_t fs_read(int fd, void *buf, size_t count)
     return 0;
   if (fd == FD_EVENTS)
   {
-    return events_read(buf, 0, num);
+    return events_read(buf, 0, count);
   }
 
   size_t ret = (size_t)ramdisk_read(buf, file_table[fd].open_offset + file_table[fd].disk_offset, num);

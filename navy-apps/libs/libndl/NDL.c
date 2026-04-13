@@ -4,11 +4,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <fcntl.h>
 
 static int evtdev = -1;
 static int fbdev = -1;
 static int screen_w = 0, screen_h = 0;
 static unsigned long long time_libst;
+static int dscb_of_fd;
 
 static inline uint32_t convert_timeval_to_ms(struct timeval *tv)
 {
@@ -31,7 +33,9 @@ uint32_t NDL_GetTicks()
 
 int NDL_PollEvent(char *buf, int len)
 {
-  return 0;
+
+  int ret = read(dscb_of_fd, buf, len);
+  return ret ? 1 : 0;
 }
 
 void NDL_OpenCanvas(int *w, int *h)
@@ -92,6 +96,8 @@ int NDL_Init(uint32_t flags)
   gettimeofday(&libst_time, NULL);
 
   time_libst = convert_timeval_to_ms(&libst_time);
+
+  dscb_of_fd = open("/dev/events", 0, 0);
 
   return 0;
 }

@@ -31,7 +31,7 @@ void init_proc()
   Log("Initializing processes...");
 
   // load program tere
-  naive_uload(NULL, "/bin/event-test");
+  naive_uload(NULL, "/bin/bmp-test");
 }
 
 Context *schedule(Context *prev)

@@ -10,7 +10,8 @@ static int evtdev = -1;
 static int fbdev = -1;
 static int screen_w = 0, screen_h = 0;
 static unsigned long long time_libst;
-static int dscb_of_fd;
+static int events_fd, sysdisp_fd;
+static int canvas_w, canvas_h;
 
 static inline uint32_t convert_timeval_to_ms(struct timeval *tv)
 {
@@ -34,12 +35,41 @@ uint32_t NDL_GetTicks()
 int NDL_PollEvent(char *buf, int len)
 {
 
-  int ret = read(dscb_of_fd, buf, len);
+  int ret = read(events_fd, buf, len);
   return ret ? 1 : 0;
 }
 
 void NDL_OpenCanvas(int *w, int *h)
 {
+  char buf[128];
+  int nread = read(sysdisp_fd, buf, sizeof(buf) - 1);
+  if (nread > 0)
+  {
+    buf[nread] = '\0';
+  }
+  close(sysdisp_fd);
+
+  sscanf(buf, "WIDTH : %d\nHEIGHT:%d", &screen_w, &screen_h);
+
+  // if width and height were assigned as zero,
+  // then reassigned screen_size to them
+  if (*w == 0 && *h == 0)
+  {
+    *w = screen_w;
+    *h = screen_h;
+  }
+
+  // boundary check,
+  if (*w > screen_w)
+    *w = screen_w;
+  if (*h > screen_h)
+    *h = screen_h;
+
+  // memorize the value of width and height,
+  // for drawrect later,
+  canvas_w = *w;
+  canvas_h = *h;
+
   if (getenv("NWM_APP"))
   {
     int fbctl = 4;
@@ -97,7 +127,8 @@ int NDL_Init(uint32_t flags)
 
   time_libst = convert_timeval_to_ms(&libst_time);
 
-  dscb_of_fd = open("/dev/events", 0, 0);
+  events_fd = open("/dev/events", 0, 0);
+  sysdisp_fd = open("/proc/dispinfo", 0, 0);
 
   return 0;
 }

@@ -1,12 +1,14 @@
 #include <fs.h>
 #include <unistd.h>
 #define ARRAY_LEN (sizeof(file_table) / sizeof(file_table[0]))
+#define FD_LAST FD_DISPINFO
 typedef size_t (*ReadFn)(void *buf, size_t offset, size_t len);
 typedef size_t (*WriteFn)(const void *buf, size_t offset, size_t len);
 
 size_t ramdisk_read(void *buf, size_t offset, size_t len);
 size_t ramdisk_write(const void *buf, size_t offset, size_t len);
 size_t events_read(void *buf, size_t offset, size_t len);
+size_t dispinfo_read(void *buf, size_t offset, size_t len);
 
 typedef struct
 {
@@ -25,7 +27,8 @@ enum
   FD_STDOUT,
   FD_STDERR,
   FD_FB,
-  FD_EVENTS
+  FD_EVENTS,
+  FD_DISPINFO
 };
 
 size_t invalid_read(void *buf, size_t offset, size_t len)
@@ -48,6 +51,7 @@ static Finfo file_table[] __attribute__((used)) = {
     [FD_STDOUT] = {"stdout", 0, 0, invalid_read, serial_write},
     [FD_STDERR] = {"stderr", 0, 0, invalid_read, serial_write},
     [FD_EVENTS] = {"/dev/events", 0, 0, events_read, invalid_write},
+    [FD_DISPINFO] = {"/proc/dispinfo", 0, 0, dispinfo_read, invalid_write},
 #include "files.h"
 };
 
@@ -128,6 +132,10 @@ size_t fs_read(int fd, void *buf, size_t count)
   if (fd == FD_EVENTS)
   {
     return events_read(buf, 0, count);
+  }
+  if (fd == FD_DISPINFO)
+  {
+    return dispinfo_read(buf, 0, count);
   }
 
   size_t ret = (size_t)ramdisk_read(buf, file_table[fd].open_offset + file_table[fd].disk_offset, num);

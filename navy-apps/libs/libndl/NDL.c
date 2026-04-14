@@ -70,6 +70,9 @@ void NDL_OpenCanvas(int *w, int *h)
   canvas_w = *w;
   canvas_h = *h;
 
+  printf("NDL: Screen size is %d x %d, Canvas size is %d x %d\n",
+         screen_w, screen_h, canvas_w, canvas_h);
+
   if (getenv("NWM_APP"))
   {
     int fbctl = 4;

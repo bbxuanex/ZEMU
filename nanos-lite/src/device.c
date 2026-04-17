@@ -81,5 +81,5 @@ void init_device()
   ioe_init();
   sys_width = io_read(AM_GPU_CONFIG).width;
   sys_height = io_read(AM_GPU_CONFIG).height;
-  sys_size = sys_width * sys_height;
+  sys_size = sys_width * sys_height * 4;
 }

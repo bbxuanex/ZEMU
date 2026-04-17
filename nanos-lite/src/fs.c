@@ -113,7 +113,7 @@ size_t fs_write(int fd, const void *buf, size_t count)
     file_table[fd].open_offset += num;
   }
 
-  else if (fd == 4)
+  else if (fd == FD_FB)
     ret = (size_t)fb_write(buf, file_table[fd].open_offset, count);
   else
     ret = (size_t)(file_table[fd].write)(buf, file_table[fd].disk_offset, count);

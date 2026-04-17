@@ -9,6 +9,7 @@ size_t ramdisk_read(void *buf, size_t offset, size_t len);
 size_t ramdisk_write(const void *buf, size_t offset, size_t len);
 size_t events_read(void *buf, size_t offset, size_t len);
 size_t dispinfo_read(void *buf, size_t offset, size_t len);
+size_t fb_write(const void *buf, size_t offset, size_t len);
 
 typedef struct
 {
@@ -50,6 +51,7 @@ static Finfo file_table[] __attribute__((used)) = {
     [FD_STDIN] = {"stdin", 0, 0, invalid_read, invalid_write},
     [FD_STDOUT] = {"stdout", 0, 0, invalid_read, serial_write},
     [FD_STDERR] = {"stderr", 0, 0, invalid_read, serial_write},
+    [FD_FB] = {"/dev/fb", 0, 0, invalid_read, fb_write},
     [FD_EVENTS] = {"/dev/events", 0, 0, events_read, invalid_write},
     [FD_DISPINFO] = {"/proc/dispinfo", 0, 0, dispinfo_read, invalid_write},
 #include "files.h"
@@ -58,6 +60,12 @@ static Finfo file_table[] __attribute__((used)) = {
 void init_fs()
 {
   // TODO: initialize the size of /dev/fb
+  AM_GPU_CONFIG_T ev = io_read(AM_GPU_CONFIG);
+  int fb_width = ev.width;
+  int fb_height = ev.height;
+
+  size_t size = fb_width * fb_height * 4;
+  file_table[FD_FB].size = size;
 }
 
 int fs_open(const char *pathname, int flags, int mode)

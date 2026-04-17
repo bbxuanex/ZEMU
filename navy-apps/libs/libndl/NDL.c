@@ -10,7 +10,7 @@ static int evtdev = -1;
 static int fbdev = -1;
 static int screen_w = 0, screen_h = 0;
 static unsigned long long time_libst;
-static int events_fd, sysdisp_fd;
+static int events_fd, sysdisp_fd, fb_fd;
 static int canvas_w, canvas_h;
 
 static inline uint32_t convert_timeval_to_ms(struct timeval *tv)
@@ -100,6 +100,18 @@ void NDL_OpenCanvas(int *w, int *h)
 
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h)
 {
+  int start_ro = (screen_h - canvas_h) / 2;
+  int start_co = (screen_w - canvas_w) / 2;
+  int re_x = x + start_co;
+  int re_y = y + start_ro;
+
+  size_t offset = (screen_w * re_y + re_x);
+
+  for (int i = 0; i < h; ++i)
+  {
+    lseek(fb_fd, (offset + i * screen_w) * 4, SEEK_SET);
+    write(fb_fd, pixels + i * w, w * 4);
+  }
 }
 
 void NDL_OpenAudio(int freq, int channels, int samples)
@@ -133,6 +145,7 @@ int NDL_Init(uint32_t flags)
 
   events_fd = open("/dev/events", 0, 0);
   sysdisp_fd = open("/proc/dispinfo", 0, 0);
+  fb_fd = open("/dev/fb", 0, 0);
 
   return 0;
 }

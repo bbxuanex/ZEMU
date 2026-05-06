@@ -22,8 +22,6 @@ int SDL_PollEvent(SDL_Event *ev)
 
 int SDL_WaitEvent(SDL_Event *event)
 {
-  printf("ENTER SDL_WaitEvent\n");
-  fflush(stdout);
 
   while (1)
   {
@@ -33,8 +31,6 @@ int SDL_WaitEvent(SDL_Event *event)
     char keynmstr[32];
 
     ret = NDL_PollEvent(buf, sizeof(buf));
-
-    printf("ret=%d, buf=[%s]\n", ret, buf);
 
     if (!ret)
       continue;

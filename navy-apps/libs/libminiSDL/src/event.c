@@ -29,6 +29,9 @@ int SDL_WaitEvent(SDL_Event *event)
     char keynmstr[32];
 
     ret = NDL_PollEvent(buf, sizeof(buf));
+
+    printf("ret=%d, buf=[%s]\n", ret, buf);
+
     if (!ret)
       continue;
 

@@ -36,15 +36,15 @@ int SDL_WaitEvent(SDL_Event *event)
     if (n != 2)
       continue;
 
-    int sdl_keytyp = -1;
+    int sdl_keytype = -1;
     int sdl_keynm = -1;
 
     if (strcmp(keytpstr, "ku") == 0)
       sdl_keytype = SDL_KEYUP;
     if (strcmp(keytpstr, "kd") == 0)
-      SDL_keytype = SDL_KEYDOWN;
+      sdl_keytype = SDL_KEYDOWN;
 
-    if (sdl_keytp < 0)
+    if (sdl_keytype < 0)
       continue;
 
     for (int i = 0; i < numkey; ++i)

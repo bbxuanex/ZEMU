@@ -21,6 +21,9 @@ int SDL_PollEvent(SDL_Event *ev)
 
 int SDL_WaitEvent(SDL_Event *event)
 {
+  printf("ENTER SDL_WaitEvent\n");
+  fflush(stdout);
+
   while (1)
   {
     int ret;

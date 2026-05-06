@@ -1,6 +1,7 @@
 #include <NDL.h>
 #include <SDL.h>
 #include <sdl-event.h>
+#include <string.h>
 
 #define keyname(k) #k,
 #define numkey (sizeof(keyname) / sizeof(keyname[0]))

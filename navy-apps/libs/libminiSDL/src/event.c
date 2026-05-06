@@ -32,7 +32,7 @@ int SDL_WaitEvent(SDL_Event *event)
     if (!ret)
       continue;
 
-    int n = sscanf(buf, "%3s %31s", keytpstr, keynmstr);
+    int n = sscanf(buf, "%3s %31s\n", keytpstr, keynmstr);
     if (n != 2)
       continue;
 

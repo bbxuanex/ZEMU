@@ -1,19 +1,47 @@
-# ICS2025 Programming Assignment
+# NEMU 系统学习与实现
 
-This project is the programming assignment of the class ICS(Introduction to Computer System)
-in Department of Computer Science and Technology, Nanjing University.
+这是我的计算机系统学习项目。我以一个简化的计算机系统为对象，通过阅读代码、补充实现和调试，逐步理解程序从指令执行到底层运行支持的完整过程。
 
-For the guide of this programming assignment,
-refer to https://nju-projectn.github.io/ics-pa-gitbook/ics2025/
+相比于单独学习各个概念，我更希望在代码中把它们联系起来：一条指令如何改变处理器状态，一次内存访问如何完成，以及应用程序如何通过运行时和操作系统使用底层机器。
 
-To initialize, run
+## 项目结构
+
+仓库包含以下几个部分：
+
+| 目录 | 作用 |
+| --- | --- |
+| `nemu/` | 指令集模拟器，涉及指令执行、处理器状态、内存访问与调试支持 |
+| `abstract-machine/` | 抽象机器接口，为上层程序提供统一的底层运行环境 |
+| `nanos-lite/` | 精简操作系统，用于学习程序运行与基本系统服务 |
+| `navy-apps/` | 配套应用程序，用于运行测试和观察系统行为 |
+
+这些模块构成了从底层机器到上层应用的学习路径。各模块的具体完成情况以当前代码为准。
+
+## 实践重点
+
+我在这个项目中主要围绕以下问题开展学习和实现：
+
+- **指令执行**：理解取指、译码和执行的过程，跟踪寄存器与处理器状态的变化。
+- **内存访问**：结合具体代码理解程序如何读取和写入数据。
+- **调试与验证**：通过测试、执行记录和状态检查定位问题，验证实现是否符合预期。
+- **系统协作**：理解模拟器、运行环境、操作系统和应用程序之间的接口与依赖。
+
+## 学习记录
+
+我把代码实现和问题分析放在一起推进。遇到异常时，先尝试复现，再缩小问题范围，结合执行过程检查自己的实现和理解。
+
+这个仓库用于积累相关代码和实践记录，也会随着学习进度继续完善。
+
+## 初始化
+
+在仓库根目录执行：
+
 ```bash
 bash init.sh subproject-name
 ```
-See `init.sh` for more details.
 
-The following subprojects/components are included. Some of them are not fully implemented.
-* [NEMU](https://github.com/NJU-ProjectN/nemu)
-* [Abstract-Machine](https://github.com/NJU-ProjectN/abstract-machine)
-* [Nanos-lite](https://github.com/NJU-ProjectN/nanos-lite)
-* [Navy-apps](https://github.com/NJU-ProjectN/navy-apps)
+将 `subproject-name` 替换为需要初始化的子项目名称，具体参数见 `init.sh`。
+
+## 致谢
+
+本项目基于开源的 [Project-N](https://github.com/NJU-ProjectN) 实验框架进行学习与扩展，相关组件保留原有许可与版权声明。
